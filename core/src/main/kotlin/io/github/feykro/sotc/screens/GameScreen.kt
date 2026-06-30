@@ -1,0 +1,117 @@
+package io.github.feykro.sotc.screens
+
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.maps.tiled.TmxMapLoader
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
+import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.utils.ScreenUtils
+import io.github.feykro.sotc.MainGame
+import io.github.feykro.sotc.entity.player.Player
+import ktx.log.logger
+import ktx.graphics.use
+
+class GameScreen(
+    game: MainGame
+) : BaseScreen(game) {
+    private val player = Player()
+    private val direction = Vector2()
+    private val playerTexture = Texture(Gdx.files.internal("player2.png"))
+    private val map = TmxMapLoader().load("maps/map.tmx")
+    val mapWidth = map.properties["width", Int::class.java]
+    val mapHeight = map.properties["height", Int::class.java]
+
+    val tileWidth = map.properties["tilewidth", Int::class.java]
+    val tileHeight = map.properties["tileheight", Int::class.java]
+
+    val worldWidth = mapWidth * tileWidth.toFloat()
+    val worldHeight = mapHeight * tileHeight.toFloat()
+    private val mapRenderer = OrthogonalTiledMapRenderer(map, 1f, game.batch)
+
+
+    companion object {
+        private val log = logger<GameScreen>()
+    }
+
+    override fun render(delta: Float) {
+
+        viewport.apply()
+        direction.setZero()
+        if (Gdx.input.isKeyPressed(Input.Keys.W))
+            direction.y++
+
+        if (Gdx.input.isKeyPressed(Input.Keys.S))
+            direction.y--
+
+        if (Gdx.input.isKeyPressed(Input.Keys.A))
+            direction.x--
+
+        if (Gdx.input.isKeyPressed(Input.Keys.D))
+            direction.x++
+
+        direction.nor()
+
+        player.update(delta, direction, worldWidth, worldHeight)
+
+        ScreenUtils.clear(0.1f, 0.2f, 0.5f, 1.0f)
+
+        val halfWidth = viewport.worldWidth / 2f
+        val halfHeight = viewport.worldHeight / 2f
+        camera.position.set(
+            MathUtils.clamp(
+                player.x + Player.WIDTH / 2f,
+                halfWidth,
+                worldWidth - halfWidth
+            ),
+            MathUtils.clamp(
+                player.y + Player.HEIGHT / 2f,
+                halfHeight,
+                worldHeight - halfHeight
+            ),
+            0f
+        )
+        camera.update()
+
+        mapRenderer.setView(camera)
+        mapRenderer.render()
+
+        game.batch.use(camera.combined) {
+            it.draw(
+                playerTexture,
+                player.x,
+                player.y,
+                Player.WIDTH,
+                Player.HEIGHT
+            )
+        }
+    }
+
+    override fun show() {
+        log.debug { "GameScreen gets shown" }
+        viewport.apply()
+        camera.position.set(
+            viewport.worldWidth / 2f,
+            viewport.worldHeight / 2f,
+            0f
+        )
+        camera.update()
+    }
+
+    override fun resize(width: Int, height: Int) {
+        viewport.update(width, height, true)
+    }
+
+    override fun pause() {}
+
+    override fun resume() {}
+
+    override fun hide() {}
+
+    override fun dispose() {
+
+    }
+}

@@ -4,6 +4,12 @@ eclipse.project.name = appName + '-core'
 dependencies {
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
   api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+  implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+  implementation "io.github.libktx:ktx-assets:$ktxVersion"
+  implementation "io.github.libktx:ktx-scene2d:$ktxVersion"
+  implementation "io.github.libktx:ktx-collections:$ktxVersion"
+  implementation "io.github.libktx:ktx-log:$ktxVersion"
+  implementation "io.github.libktx:ktx-graphics:$ktxVersion"
 
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
