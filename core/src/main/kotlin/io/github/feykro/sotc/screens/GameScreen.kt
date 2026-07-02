@@ -2,12 +2,9 @@ package io.github.feykro.sotc.screens
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
-import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import com.badlogic.gdx.maps.MapObjects
 import com.badlogic.gdx.maps.objects.RectangleMapObject
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.MathUtils
@@ -18,6 +15,7 @@ import io.github.feykro.sotc.entity.enemy.EnemyFactory
 import io.github.feykro.sotc.entity.enemy.EnemyManager
 import io.github.feykro.sotc.entity.enemy.EnemyType
 import io.github.feykro.sotc.entity.player.Player
+import io.github.feykro.sotc.ui.hud.Hud
 import ktx.log.logger
 import ktx.graphics.use
 
@@ -42,6 +40,7 @@ class GameScreen(
     private val enemyManager = EnemyManager(enemyFactory)
 
     private var showHitboxes = false
+    private val hud = Hud()
 
     companion object {
         private val log = logger<GameScreen>()
@@ -126,10 +125,14 @@ class GameScreen(
             renderHitboxes()
         }
 
+        hud.update(delta)
+        hud.render()
+
     }
 
     override fun resize(width: Int, height: Int) {
         viewport.update(width, height, true)
+        hud.resize(width, height)
     }
 
     override fun pause() {}
@@ -139,6 +142,7 @@ class GameScreen(
     override fun hide() {}
 
     override fun dispose() {
+        hud.dispose()
 
     }
 
