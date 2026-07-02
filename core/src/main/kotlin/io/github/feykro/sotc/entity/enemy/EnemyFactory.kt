@@ -1,0 +1,17 @@
+package io.github.feykro.sotc.entity.enemy
+
+import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.graphics.Texture
+
+enum class EnemyType {
+    STRIGOI
+}
+class EnemyFactory(
+    private val assets: AssetManager
+) {
+
+    fun create(type: EnemyType, x: Float, y: Float): Enemy =
+        when(type) {
+            EnemyType.STRIGOI -> Strigoi(x, y, assets["player.png", Texture::class.java])
+        }
+}

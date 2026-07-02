@@ -4,6 +4,7 @@ import com.badlogic.gdx.Application
 import com.badlogic.gdx.Game
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
@@ -19,6 +20,11 @@ class MainGame : Game() {
     override fun create() {
         Gdx.app.logLevel = Application.LOG_DEBUG
         setScreen(MainMenuScreen(this))
+        assetManager.load("player.png", Texture::class.java)
+        //assetManager.load("enemies/moroi.png", Texture::class.java)
+        //assetManager.load("enemies/varcolac.png", Texture::class.java)
+
+        assetManager.finishLoading()
     }
 
     override fun dispose() {

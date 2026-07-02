@@ -11,6 +11,9 @@ import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.ScreenUtils
 import io.github.feykro.sotc.MainGame
+import io.github.feykro.sotc.entity.enemy.EnemyFactory
+import io.github.feykro.sotc.entity.enemy.EnemyManager
+import io.github.feykro.sotc.entity.enemy.EnemyType
 import io.github.feykro.sotc.entity.player.Player
 import ktx.log.logger
 import ktx.graphics.use
@@ -31,10 +34,28 @@ class GameScreen(
     val worldWidth = mapWidth * tileWidth.toFloat()
     val worldHeight = mapHeight * tileHeight.toFloat()
     private val mapRenderer = OrthogonalTiledMapRenderer(map, 1f, game.batch)
+    private val enemyFactory = EnemyFactory(game.assetManager)
+    private val enemyManager = EnemyManager(enemyFactory)
 
 
     companion object {
         private val log = logger<GameScreen>()
+    }
+
+    override fun show() {
+        super.show()
+        log.debug { "GameScreen gets shown" }
+        camera.position.set(
+            viewport.worldWidth / 2f,
+            viewport.worldHeight / 2f,
+            0f
+        )
+        camera.update()
+        enemyManager.spawnEnemy(
+            EnemyType.STRIGOI,
+            20f,
+            20f
+        )
     }
 
     override fun render(delta: Float) {
@@ -79,7 +100,10 @@ class GameScreen(
         mapRenderer.setView(camera)
         mapRenderer.render()
 
+        enemyManager.update(delta, player.x, player.y, worldWidth, worldHeight)
+
         game.batch.use(camera.combined) {
+            enemyManager.render(it)
             it.draw(
                 playerTexture,
                 player.x,
@@ -88,17 +112,6 @@ class GameScreen(
                 Player.HEIGHT
             )
         }
-    }
-
-    override fun show() {
-        log.debug { "GameScreen gets shown" }
-        viewport.apply()
-        camera.position.set(
-            viewport.worldWidth / 2f,
-            viewport.worldHeight / 2f,
-            0f
-        )
-        camera.update()
     }
 
     override fun resize(width: Int, height: Int) {
