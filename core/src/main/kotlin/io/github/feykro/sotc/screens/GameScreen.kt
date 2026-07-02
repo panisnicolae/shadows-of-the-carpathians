@@ -5,6 +5,9 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.maps.MapObjects
+import com.badlogic.gdx.maps.objects.RectangleMapObject
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.MathUtils
@@ -25,6 +28,7 @@ class GameScreen(
     private val direction = Vector2()
     private val playerTexture = Texture(Gdx.files.internal("player2.png"))
     private val map = TmxMapLoader().load("maps/map.tmx")
+    private val collisionObjects = map.layers["collision"]!!.objects
     val mapWidth = map.properties["width", Int::class.java]
     val mapHeight = map.properties["height", Int::class.java]
 
@@ -37,6 +41,7 @@ class GameScreen(
     private val enemyFactory = EnemyFactory(game.assetManager)
     private val enemyManager = EnemyManager(enemyFactory)
 
+    private var showHitboxes = false
 
     companion object {
         private val log = logger<GameScreen>()
@@ -73,10 +78,13 @@ class GameScreen(
 
         if (Gdx.input.isKeyPressed(Input.Keys.D))
             direction.x++
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F3)) {
+            showHitboxes = !showHitboxes
+        }
 
         direction.nor()
 
-        player.update(delta, direction, worldWidth, worldHeight)
+        player.update(delta, direction, worldWidth, worldHeight,collisionObjects)
 
         ScreenUtils.clear(0.1f, 0.2f, 0.5f, 1.0f)
 
@@ -98,7 +106,7 @@ class GameScreen(
         camera.update()
 
         mapRenderer.setView(camera)
-        mapRenderer.render()
+        mapRenderer.render(intArrayOf(0,1,2))
 
         enemyManager.update(delta, player.x, player.y, worldWidth, worldHeight)
 
@@ -112,6 +120,12 @@ class GameScreen(
                 Player.HEIGHT
             )
         }
+        mapRenderer.render(intArrayOf(3))
+
+        if (showHitboxes) {
+            renderHitboxes()
+        }
+
     }
 
     override fun resize(width: Int, height: Int) {
@@ -126,5 +140,27 @@ class GameScreen(
 
     override fun dispose() {
 
+    }
+
+    fun renderHitboxes() {
+        if (showHitboxes) {
+            game.shapeRenderer.projectionMatrix = camera.combined
+
+            game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+
+            // Player
+            val hb = player.getHitbox()
+            game.shapeRenderer.rect(hb.x, hb.y, hb.width, hb.height)
+
+            // Collisions
+            for (obj in collisionObjects) {
+                if (obj is RectangleMapObject) {
+                    val r = obj.rectangle
+                    game.shapeRenderer.rect(r.x, r.y, r.width, r.height)
+                }
+            }
+
+            game.shapeRenderer.end()
+        }
     }
 }
