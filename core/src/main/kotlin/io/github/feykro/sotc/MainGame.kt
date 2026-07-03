@@ -24,6 +24,9 @@ class MainGame : Game() {
         //assetManager.load("enemies/moroi.png", Texture::class.java)
         //assetManager.load("enemies/varcolac.png", Texture::class.java)
 
+        assetManager.load("weapons/WR_NightBoundSet _Sword_009.png", Texture::class.java)
+        assetManager.load("weapons/WR_NightBoundSet _Axe_002.png", Texture::class.java)
+
         assetManager.finishLoading()
     }
 

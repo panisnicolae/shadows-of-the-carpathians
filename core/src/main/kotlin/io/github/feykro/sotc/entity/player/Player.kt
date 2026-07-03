@@ -1,15 +1,15 @@
 package io.github.feykro.sotc.entity.player
 
-import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.maps.MapObjects
 import com.badlogic.gdx.maps.objects.RectangleMapObject
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
+import io.github.feykro.sotc.weapons.Weapon
 
-class Player {
+class Player(private val texture: Texture) {
     var x = 10f
     var y = 10f
 
@@ -23,8 +23,8 @@ class Player {
         const val HITBOX_OFFSET_X = 7f
         const val HITBOX_OFFSET_Y = 0f
     }
-
     private val speed = 200f
+    lateinit var weapon: Weapon
     private val hitbox = Rectangle()
     fun getHitbox(): Rectangle = hitbox
 
@@ -49,6 +49,22 @@ class Player {
             y + HITBOX_OFFSET_Y,
             HITBOX_WIDTH,
             HITBOX_HEIGHT
+        )
+    }
+
+    fun render(batch: Batch) {
+        batch.draw(
+            texture,
+            x,
+            y,
+            WIDTH,
+            HEIGHT
+        )
+
+        weapon.render(
+            batch,
+            x,
+            y
         )
     }
 

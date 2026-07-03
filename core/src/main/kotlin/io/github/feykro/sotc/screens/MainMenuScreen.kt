@@ -58,7 +58,9 @@ class MainMenuScreen(
 
         textButton.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                game.screen = GameScreen(game)
+                //val oldScreen = game.screen
+                game.setScreen(GameScreen(game))
+                //oldScreen.dispose()
             }
         })
     }
@@ -69,7 +71,7 @@ class MainMenuScreen(
         stage.draw()
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            game.screen = GameScreen(game)
+            game.setScreen(GameScreen(game))
         }
     }
 
@@ -88,11 +90,13 @@ class MainMenuScreen(
 
     override fun hide() {
         //TODO("Not yet implemented")
+        Gdx.input.inputProcessor = null
     }
 
     override fun dispose() {
         skin.dispose()
         stage.dispose()
+        font.dispose()
     }
 
 }

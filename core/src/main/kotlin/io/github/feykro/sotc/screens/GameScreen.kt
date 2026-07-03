@@ -16,15 +16,16 @@ import io.github.feykro.sotc.entity.enemy.EnemyManager
 import io.github.feykro.sotc.entity.enemy.EnemyType
 import io.github.feykro.sotc.entity.player.Player
 import io.github.feykro.sotc.ui.hud.Hud
+import io.github.feykro.sotc.weapons.WeaponFactory
+import io.github.feykro.sotc.weapons.WeaponType
 import ktx.log.logger
 import ktx.graphics.use
 
 class GameScreen(
     game: MainGame
 ) : BaseScreen(game) {
-    private val player = Player()
+    private val player = Player(Texture(Gdx.files.internal("player2.png")))
     private val direction = Vector2()
-    private val playerTexture = Texture(Gdx.files.internal("player2.png"))
     private val map = TmxMapLoader().load("maps/map.tmx")
     private val collisionObjects = map.layers["collision"]!!.objects
     val mapWidth = map.properties["width", Int::class.java]
@@ -38,7 +39,7 @@ class GameScreen(
     private val mapRenderer = OrthogonalTiledMapRenderer(map, 1f, game.batch)
     private val enemyFactory = EnemyFactory(game.assetManager)
     private val enemyManager = EnemyManager(enemyFactory)
-
+    private val weaponFactory = WeaponFactory(game.assetManager)
     private var showHitboxes = false
     private val hud = Hud()
 
@@ -60,6 +61,7 @@ class GameScreen(
             20f,
             20f
         )
+        player.weapon = weaponFactory.create(WeaponType.AXE)
     }
 
     override fun render(delta: Float) {
@@ -108,16 +110,20 @@ class GameScreen(
         mapRenderer.render(intArrayOf(0,1,2))
 
         enemyManager.update(delta, player.x, player.y, worldWidth, worldHeight)
+        val enemy = enemyManager.getNearestEnemy(player.x, player.y)
+
+        enemy?.let {
+            player.weapon.lookAt(
+                player.x,
+                player.y,
+                it.x,
+                it.y
+            )
+        }
 
         game.batch.use(camera.combined) {
             enemyManager.render(it)
-            it.draw(
-                playerTexture,
-                player.x,
-                player.y,
-                Player.WIDTH,
-                Player.HEIGHT
-            )
+            player.render(it)
         }
         mapRenderer.render(intArrayOf(3))
 
@@ -143,7 +149,6 @@ class GameScreen(
 
     override fun dispose() {
         hud.dispose()
-
     }
 
     fun renderHitboxes() {

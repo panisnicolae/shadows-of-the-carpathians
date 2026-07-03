@@ -20,6 +20,16 @@ class FpsCounter(font: BitmapFont) {
     }
 
     fun update() {
-        label.setText("FPS: ${Gdx.graphics.framesPerSecond}")
+        val runtime = Runtime.getRuntime()
+
+        val usedMemory =
+            (runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024
+
+        label.setText(
+            """
+            FPS: ${Gdx.graphics.framesPerSecond}
+            RAM: ${usedMemory} MB
+            """.trimIndent()
+        )
     }
 }
