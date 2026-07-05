@@ -15,6 +15,9 @@ import io.github.feykro.sotc.entity.enemy.EnemyFactory
 import io.github.feykro.sotc.entity.enemy.EnemyManager
 import io.github.feykro.sotc.entity.enemy.EnemyType
 import io.github.feykro.sotc.entity.player.Player
+import io.github.feykro.sotc.input.Action
+import io.github.feykro.sotc.input.DesktopInputManager
+import io.github.feykro.sotc.input.InputManager
 import io.github.feykro.sotc.ui.hud.Hud
 import io.github.feykro.sotc.weapons.WeaponFactory
 import io.github.feykro.sotc.weapons.WeaponType
@@ -40,6 +43,7 @@ class GameScreen(
     private val enemyFactory = EnemyFactory(game.assetManager)
     private val enemyManager = EnemyManager(enemyFactory)
     private val weaponFactory = WeaponFactory(game.assetManager)
+    private val desktopInput = game.inputManager
     private var showHitboxes = false
     private val hud = Hud()
 
@@ -67,25 +71,18 @@ class GameScreen(
     override fun render(delta: Float) {
 
         viewport.apply()
-        direction.setZero()
-        if (Gdx.input.isKeyPressed(Input.Keys.W))
-            direction.y++
+        val direction = desktopInput.getMovement()
 
-        if (Gdx.input.isKeyPressed(Input.Keys.S))
-            direction.y--
+        player.update(delta, direction, worldWidth, worldHeight, collisionObjects
+        )
 
-        if (Gdx.input.isKeyPressed(Input.Keys.A))
-            direction.x--
-
-        if (Gdx.input.isKeyPressed(Input.Keys.D))
-            direction.x++
-        if (Gdx.input.isKeyJustPressed(Input.Keys.F3)) {
-            showHitboxes = !showHitboxes
+        if (desktopInput.isJustPressed(Action.ATTACK)) {
+            player.attack()
         }
 
-        direction.nor()
-
-        player.update(delta, direction, worldWidth, worldHeight,collisionObjects)
+        if (desktopInput.isJustPressed(Action.TOGGLE_HITBOXES)) {
+            showHitboxes = !showHitboxes
+        }
 
         ScreenUtils.clear(0.1f, 0.2f, 0.5f, 1.0f)
 

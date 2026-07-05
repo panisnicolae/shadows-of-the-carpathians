@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import io.github.feykro.sotc.input.DesktopInputManager
+import io.github.feykro.sotc.input.InputManager
 import io.github.feykro.sotc.screens.MainMenuScreen
 
 /** [com.badlogic.gdx.ApplicationListener] implementation shared by all platforms. */
@@ -16,6 +18,7 @@ class MainGame : Game() {
     val batch: Batch by lazy { SpriteBatch() }
     val shapeRenderer: ShapeRenderer by lazy { ShapeRenderer() }
     val assetManager = AssetManager()
+    val inputManager: InputManager = DesktopInputManager()
 
     override fun create() {
         Gdx.app.logLevel = Application.LOG_DEBUG

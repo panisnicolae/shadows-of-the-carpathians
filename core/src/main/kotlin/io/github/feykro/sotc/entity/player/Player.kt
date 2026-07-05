@@ -50,6 +50,7 @@ class Player(private val texture: Texture) {
             HITBOX_WIDTH,
             HITBOX_HEIGHT
         )
+        weapon.update(delta)
     }
 
     fun render(batch: Batch) {
@@ -66,6 +67,10 @@ class Player(private val texture: Texture) {
             x,
             y
         )
+    }
+
+    fun attack() {
+        weapon?.attack()
     }
 
     private fun isBlocked(nextX: Float, nextY: Float, objects: MapObjects?): Boolean {

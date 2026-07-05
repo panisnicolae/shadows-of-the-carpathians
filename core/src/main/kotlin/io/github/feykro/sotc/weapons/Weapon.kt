@@ -17,6 +17,9 @@ abstract class Weapon(
 ) {
 
     protected val sprite = Sprite(texture)
+    protected var state = WeaponState.IDLE
+
+    protected var lookRotation = 0f
 
     protected var rotation = 0f
 
@@ -30,13 +33,18 @@ abstract class Weapon(
         targetX: Float,
         targetY: Float
     ) {
-        rotation = MathUtils.atan2(
+        lookRotation = MathUtils.atan2(
             targetY - ownerY,
             targetX - ownerX
         ) * MathUtils.radiansToDegrees-90f
+
+        if (state == WeaponState.IDLE) {
+            rotation = lookRotation
+        }
     }
 
     abstract fun update(delta: Float)
+    abstract fun attack()
 
     open fun render(
         batch: Batch,
