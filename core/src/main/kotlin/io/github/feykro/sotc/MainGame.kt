@@ -29,6 +29,10 @@ class MainGame : Game() {
 
         assetManager.load("weapons/WR_NightBoundSet _Sword_009.png", Texture::class.java)
         assetManager.load("weapons/WR_NightBoundSet _Axe_002.png", Texture::class.java)
+        assetManager.load("weapons/WR_NightBoundSet _Gun_001.png", Texture::class.java)
+        assetManager.load("weapons/WR_NightBoundSet _Gun_005.png", Texture::class.java)
+        assetManager.load("weapons/WR_NightBoundSet _Gun_010.png", Texture::class.java)
+        assetManager.load("weapons/bullet.png", Texture::class.java)
 
         assetManager.finishLoading()
     }

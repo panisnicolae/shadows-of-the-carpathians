@@ -21,6 +21,7 @@ import io.github.feykro.sotc.input.InputManager
 import io.github.feykro.sotc.ui.hud.Hud
 import io.github.feykro.sotc.weapons.WeaponFactory
 import io.github.feykro.sotc.weapons.WeaponType
+import io.github.feykro.sotc.weapons.projectile.ProjectileManager
 import ktx.log.logger
 import ktx.graphics.use
 
@@ -42,10 +43,13 @@ class GameScreen(
     private val mapRenderer = OrthogonalTiledMapRenderer(map, 1f, game.batch)
     private val enemyFactory = EnemyFactory(game.assetManager)
     private val enemyManager = EnemyManager(enemyFactory)
-    private val weaponFactory = WeaponFactory(game.assetManager)
+    private val projectileManager = ProjectileManager(game.assetManager.get("weapons/bullet.png", Texture::class.java))
+    private val weaponFactory = WeaponFactory(game.assetManager, projectileManager)
     private val desktopInput = game.inputManager
     private var showHitboxes = false
     private val hud = Hud()
+    private val mouseWorldPos = Vector2()
+    private var isAutoAim = true
 
     companion object {
         private val log = logger<GameScreen>()
@@ -65,7 +69,7 @@ class GameScreen(
             20f,
             20f
         )
-        player.weapon = weaponFactory.create(WeaponType.AXE)
+        player.weapon = weaponFactory.create(WeaponType.BLUNDERBUSS)
     }
 
     override fun render(delta: Float) {
@@ -73,8 +77,7 @@ class GameScreen(
         viewport.apply()
         val direction = desktopInput.getMovement()
 
-        player.update(delta, direction, worldWidth, worldHeight, collisionObjects
-        )
+        player.update(delta, direction, worldWidth, worldHeight, collisionObjects)
 
         if (desktopInput.isJustPressed(Action.ATTACK)) {
             player.attack()
@@ -107,20 +110,33 @@ class GameScreen(
         mapRenderer.render(intArrayOf(0,1,2))
 
         enemyManager.update(delta, player.x, player.y, worldWidth, worldHeight)
+        projectileManager.update(delta, enemyManager.getEnemies(), worldWidth, worldHeight, collisionObjects)
+
+        // Calculăm poziția mouse-ului în coordonatele lumii (mapă)
+        mouseWorldPos.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat())
+        viewport.unproject(mouseWorldPos)
+
+        // Logică hibridă: prioritizăm inamicul dacă e aproape, altfel mouse-ul
         val enemy = enemyManager.getNearestEnemy(player.x, player.y)
 
-        enemy?.let {
-            player.weapon.lookAt(
-                player.x,
-                player.y,
-                it.x,
-                it.y
-            )
+        val targetX: Float
+        val targetY: Float
+
+        if (enemy != null && (Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 200f)) {
+            targetX = enemy.x + 16f
+            targetY = enemy.y + 16f
+        } else {
+            targetX = mouseWorldPos.x
+            targetY = mouseWorldPos.y
         }
+
+        player.lookAt(targetX)
+        player.weapon.lookAt(player.x + Player.WIDTH / 2f, player.y + Player.HEIGHT / 2f, targetX, targetY)
 
         game.batch.use(camera.combined) {
             enemyManager.render(it)
             player.render(it)
+            projectileManager.render(it)
         }
         mapRenderer.render(intArrayOf(3))
 

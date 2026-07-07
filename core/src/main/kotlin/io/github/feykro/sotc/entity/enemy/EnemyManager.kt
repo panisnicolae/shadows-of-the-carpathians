@@ -12,10 +12,17 @@ class EnemyManager(private val factory: EnemyFactory) {
     }
 
     fun update(delta: Float, playerX: Float, playerY: Float, worldWidth: Float, worldHeight: Float) {
-        for (enemy in enemies) {
+        val iterator = enemies.iterator()
+        while (iterator.hasNext()) {
+            val enemy = iterator.next()
             enemy.update(delta, playerX, playerY, worldWidth, worldHeight)
+            if (!enemy.isAlive()) {
+                iterator.remove()
+            }
         }
     }
+
+    fun getEnemies(): Array<Enemy> = enemies
 
     fun render(batch: Batch) {
         for (enemy in enemies) {
