@@ -13,7 +13,6 @@ class ProjectileManager(
     bulletTexture: Texture,
 
 ) {
-    // ... rest of the properties ...
     private val bulletPool = ProjectilePool {
         Bullet(bulletTexture)
     }
@@ -59,10 +58,11 @@ class ProjectileManager(
             // Coliziune cu inamicii
             if (projectile.isActive()) {
                 for (enemy in enemies) {
-                    if (projectile.getHitbox().overlaps(enemy.getHitbox())) {
+                    if (enemy.canBeHit() &&
+                        projectile.getHitbox().overlaps(enemy.getHitbox())) {
+
                         enemy.takeDamage(projectile.damage)
                         projectile.destroy()
-                        break
                     }
                 }
             }

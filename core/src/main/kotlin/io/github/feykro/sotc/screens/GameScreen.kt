@@ -65,11 +65,11 @@ class GameScreen(
         )
         camera.update()
         enemyManager.spawnEnemy(
-            EnemyType.STRIGOI,
+            EnemyType.SKELETON,
             20f,
             20f
         )
-        player.weapon = weaponFactory.create(WeaponType.BLUNDERBUSS)
+        player.weapon = weaponFactory.create(WeaponType.MUSKET)
     }
 
     override fun render(delta: Float) {
@@ -109,7 +109,7 @@ class GameScreen(
         mapRenderer.setView(camera)
         mapRenderer.render(intArrayOf(0,1,2))
 
-        enemyManager.update(delta, player.x, player.y, worldWidth, worldHeight)
+        enemyManager.update(delta, player.x, player.y, worldWidth, worldHeight, collisionObjects)
         projectileManager.update(delta, enemyManager.getEnemies(), worldWidth, worldHeight, collisionObjects)
 
         // Calculăm poziția mouse-ului în coordonatele lumii (mapă)

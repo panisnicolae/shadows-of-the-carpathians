@@ -24,7 +24,7 @@ class MainGame : Game() {
         Gdx.app.logLevel = Application.LOG_DEBUG
         setScreen(MainMenuScreen(this))
         assetManager.load("player.png", Texture::class.java)
-        //assetManager.load("enemies/moroi.png", Texture::class.java)
+        assetManager.load("enemies/Skeleton enemy.png", Texture::class.java)
         //assetManager.load("enemies/varcolac.png", Texture::class.java)
 
         assetManager.load("weapons/WR_NightBoundSet _Sword_009.png", Texture::class.java)
