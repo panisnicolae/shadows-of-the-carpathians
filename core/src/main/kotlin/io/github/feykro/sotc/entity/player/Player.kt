@@ -24,6 +24,7 @@ class Player(private val texture: Texture) {
         const val HITBOX_OFFSET_Y = 0f
     }
     private val speed = 200f
+    private var health = 100
     lateinit var weapon: Weapon
     private val hitbox = Rectangle()
     private var facingRight = true
@@ -87,6 +88,12 @@ class Player(private val texture: Texture) {
     fun attack() {
         weapon.attack()
     }
+
+    fun takeDamage(amount: Int) {
+        health -= amount
+    }
+
+    fun isAlive(): Boolean = health > 0
 
     private fun isBlocked(nextX: Float, nextY: Float, objects: MapObjects?): Boolean {
         if (objects == null) return false

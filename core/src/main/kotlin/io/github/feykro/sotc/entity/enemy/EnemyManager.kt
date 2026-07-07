@@ -4,8 +4,9 @@ import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.maps.MapObjects
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Array
+import io.github.feykro.sotc.entity.player.Player
 
-class EnemyManager(private val factory: EnemyFactory) {
+class EnemyManager(private val factory: EnemyFactory, private val player: Player) {
     private val enemies = Array<Enemy>()
 
     fun spawnEnemy(type: EnemyType, x: Float, y: Float) {
@@ -16,7 +17,7 @@ class EnemyManager(private val factory: EnemyFactory) {
         val iterator = enemies.iterator()
         while (iterator.hasNext()) {
             val enemy = iterator.next()
-            enemy.update(delta, playerX, playerY, worldWidth, worldHeight,collisionObjects)
+            enemy.update(delta, player, worldWidth, worldHeight,collisionObjects)
 
             if (enemy.canBeRemoved()) {
                 iterator.remove()

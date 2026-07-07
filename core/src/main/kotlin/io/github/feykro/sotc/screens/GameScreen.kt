@@ -42,7 +42,7 @@ class GameScreen(
     val worldHeight = mapHeight * tileHeight.toFloat()
     private val mapRenderer = OrthogonalTiledMapRenderer(map, 1f, game.batch)
     private val enemyFactory = EnemyFactory(game.assetManager)
-    private val enemyManager = EnemyManager(enemyFactory)
+    private val enemyManager = EnemyManager(enemyFactory,player)
     private val projectileManager = ProjectileManager(game.assetManager.get("weapons/bullet.png", Texture::class.java))
     private val weaponFactory = WeaponFactory(game.assetManager, projectileManager)
     private val desktopInput = game.inputManager
@@ -112,6 +112,11 @@ class GameScreen(
         enemyManager.update(delta, player.x, player.y, worldWidth, worldHeight, collisionObjects)
         projectileManager.update(delta, enemyManager.getEnemies(), worldWidth, worldHeight, collisionObjects)
 
+        if (!player.isAlive()) {
+            game.setScreen(GameOverScreen(game))
+            return
+        }
+
         // Calculăm poziția mouse-ului în coordonatele lumii (mapă)
         mouseWorldPos.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat())
         viewport.unproject(mouseWorldPos)
@@ -180,6 +185,10 @@ class GameScreen(
                     val r = obj.rectangle
                     game.shapeRenderer.rect(r.x, r.y, r.width, r.height)
                 }
+            }
+            for (enemy in enemyManager.getEnemies()) {
+                val hb = enemy.getHitbox()
+                game.shapeRenderer.rect(hb.x, hb.y, hb.width, hb.height)
             }
 
             game.shapeRenderer.end()

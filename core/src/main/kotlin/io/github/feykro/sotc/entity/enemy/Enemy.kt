@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.maps.objects.RectangleMapObject
+import io.github.feykro.sotc.entity.player.Player
 
 enum class EnemyState {
     WANDER,
@@ -29,6 +30,10 @@ abstract class Enemy(
     protected var facingRight = true
     private val hitbox = Rectangle()
 
+    protected open val attackRange = 24f
+    protected open val attackCooldown = 1f
+    private var attackTimer = 0f
+
     private var state = EnemyState.WANDER
     private val detectionRadius = 150f
 
@@ -45,8 +50,28 @@ abstract class Enemy(
 
     fun isAlive(): Boolean = health > 0
 
-    open fun update(delta: Float, playerX: Float, playerY: Float, worldWidth: Float, worldHeight: Float, collisionObjects: MapObjects?) {
-        val distance = Vector2.dst(x, y, playerX, playerY)
+    open fun update(delta: Float, player: Player, worldWidth: Float, worldHeight: Float, collisionObjects: MapObjects?) {
+        attackTimer -= delta
+        val distance = Vector2.dst(
+            x + WIDTH / 2f,
+            y + HEIGHT / 2f,
+            player.x + Player.WIDTH / 2f,
+            player.y + Player.HEIGHT / 2f
+        )
+        println(
+            "distance=$distance enemy=(${x + WIDTH/2}, ${y + HEIGHT/2}) player=(${player.x + Player.WIDTH/2}, ${player.y + Player.HEIGHT/2})"
+        )
+        if (distance <= attackRange) {
+
+            direction.setZero()
+
+            if (attackTimer <= 0f) {
+                attack()
+                attackTimer = attackCooldown
+            }
+
+            return
+        }
         state =
             if (distance < detectionRadius)
                 EnemyState.CHASE
@@ -68,8 +93,8 @@ abstract class Enemy(
             }
             EnemyState.CHASE -> {
                 direction.set(
-                    playerX - x,
-                    playerY - y
+                    player.x + Player.WIDTH / 2f - (x + WIDTH / 2f),
+                    player.y + Player.HEIGHT / 2f - (y + HEIGHT / 2f)
                 ).nor()
             }
         }
@@ -103,6 +128,8 @@ abstract class Enemy(
 
     open fun canBeHit(): Boolean {
         return isAlive()
+    }
+    protected open fun attack() {
     }
 
     private fun isBlocked(
