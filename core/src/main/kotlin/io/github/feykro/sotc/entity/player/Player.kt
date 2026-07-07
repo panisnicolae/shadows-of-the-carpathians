@@ -26,9 +26,18 @@ class Player(private val texture: Texture) {
     private val speed = 200f
     lateinit var weapon: Weapon
     private val hitbox = Rectangle()
+    private var facingRight = true
+
     fun getHitbox(): Rectangle = hitbox
 
+    fun lookAt(targetX: Float) {
+        facingRight = targetX > x + WIDTH / 2f
+    }
+
     fun update(delta: Float, direction: Vector2, worldWidth: Float, worldHeight: Float, collisionObjects: MapObjects?) {
+        // În jocuri cu țintire, nu mai schimbăm facingRight aici,
+        // ci în lookAt() pe care o apelăm din GameScreen
+
         val nextX = x + direction.x * speed * delta
 
         if (!isBlocked(nextX, y, collisionObjects)) {
@@ -50,27 +59,33 @@ class Player(private val texture: Texture) {
             HITBOX_WIDTH,
             HITBOX_HEIGHT
         )
+        weapon.setOwnerPosition(x + WIDTH / 2f, y + HEIGHT / 2f)
         weapon.update(delta)
     }
 
     fun render(batch: Batch) {
+        val drawX = if (facingRight) x else x + WIDTH
+        val drawWidth = if (facingRight) WIDTH else -WIDTH
+
         batch.draw(
             texture,
-            x,
+            drawX,
             y,
-            WIDTH,
+            drawWidth,
             HEIGHT
         )
 
+        // Ajustăm poziția armei în funcție de direcția jucătorului
+
         weapon.render(
             batch,
-            x,
-            y
+            x + WIDTH / 2f,
+            y + HEIGHT / 2f
         )
     }
 
     fun attack() {
-        weapon?.attack()
+        weapon.attack()
     }
 
     private fun isBlocked(nextX: Float, nextY: Float, objects: MapObjects?): Boolean {

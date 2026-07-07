@@ -1,7 +1,7 @@
-package io.github.feykro.sotc.weapons
+package io.github.feykro.sotc.weapons.melee
 
 import com.badlogic.gdx.graphics.Texture
-import com.badlogic.gdx.graphics.g2d.Batch
+import io.github.feykro.sotc.weapons.Weapon
 
 enum class WeaponState {
     IDLE,
@@ -10,10 +10,8 @@ enum class WeaponState {
 }
 
 abstract class MeleeWeapon(
-    texture: Texture,
-    damage: Int,
-    attackSpeed: Float
-) : Weapon(texture, damage, attackSpeed) {
+    texture: Texture
+) : Weapon(texture) {
 
     companion object {
         const val ATTACK_DURATION = 0.20f
