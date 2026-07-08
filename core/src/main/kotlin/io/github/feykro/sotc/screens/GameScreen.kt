@@ -1,5 +1,6 @@
 package io.github.feykro.sotc.screens
 
+import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Texture
@@ -9,6 +10,8 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.scenes.scene2d.ui.Touchpad
 import com.badlogic.gdx.utils.ScreenUtils
 import io.github.feykro.sotc.MainGame
 import io.github.feykro.sotc.entity.enemy.EnemyFactory
@@ -18,6 +21,7 @@ import io.github.feykro.sotc.entity.player.Player
 import io.github.feykro.sotc.input.Action
 import io.github.feykro.sotc.input.DesktopInputManager
 import io.github.feykro.sotc.input.InputManager
+import io.github.feykro.sotc.input.MobileInputManager
 import io.github.feykro.sotc.ui.hud.Hud
 import io.github.feykro.sotc.weapons.WeaponFactory
 import io.github.feykro.sotc.weapons.WeaponType
@@ -45,7 +49,7 @@ class GameScreen(
     private val enemyManager = EnemyManager(enemyFactory,player)
     private val projectileManager = ProjectileManager(game.assetManager.get("weapons/bullet.png", Texture::class.java))
     private val weaponFactory = WeaponFactory(game.assetManager, projectileManager)
-    private val desktopInput = game.inputManager
+    private lateinit var inputManager: InputManager
     private var showHitboxes = false
     private val hud = Hud()
     private val mouseWorldPos = Vector2()
@@ -58,6 +62,24 @@ class GameScreen(
     override fun show() {
         super.show()
         log.debug { "GameScreen gets shown" }
+
+        if (Gdx.app.type == Application.ApplicationType.Android) {
+
+            val skin = Skin(Gdx.files.internal("ui/pixthulhu/skin/pixthulhu-ui.json"))
+
+            hud.createMobileControls(skin)
+
+            inputManager = MobileInputManager(
+                hud.movePad,
+                hud.attackButton
+            )
+
+            Gdx.input.inputProcessor = hud.stage
+        } else {
+            inputManager = DesktopInputManager()
+        }
+
+
         camera.position.set(
             viewport.worldWidth / 2f,
             viewport.worldHeight / 2f,
@@ -75,15 +97,15 @@ class GameScreen(
     override fun render(delta: Float) {
 
         viewport.apply()
-        val direction = desktopInput.getMovement()
+        val direction = inputManager.getMovement()
 
         player.update(delta, direction, worldWidth, worldHeight, collisionObjects)
 
-        if (desktopInput.isJustPressed(Action.ATTACK)) {
+        if (inputManager.isPressed(Action.ATTACK)) {
             player.attack()
         }
 
-        if (desktopInput.isJustPressed(Action.TOGGLE_HITBOXES)) {
+        if (inputManager.isJustPressed(Action.TOGGLE_HITBOXES)) {
             showHitboxes = !showHitboxes
         }
 
@@ -117,26 +139,69 @@ class GameScreen(
             return
         }
 
-        // Calculăm poziția mouse-ului în coordonatele lumii (mapă)
-        mouseWorldPos.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat())
-        viewport.unproject(mouseWorldPos)
+        if (Gdx.app.type == Application.ApplicationType.Android) {
 
-        // Logică hibridă: prioritizăm inamicul dacă e aproape, altfel mouse-ul
-        val enemy = enemyManager.getNearestEnemy(player.x, player.y)
+            val enemy = enemyManager.getNearestEnemy(player.x, player.y)
 
-        val targetX: Float
-        val targetY: Float
+            if (enemy != null &&
+                Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 200f) {
 
-        if (enemy != null && (Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 200f)) {
-            targetX = enemy.x + 16f
-            targetY = enemy.y + 16f
+                player.lookAt(enemy.x)
+                player.weapon.lookAt(
+                    player.x + Player.WIDTH / 2f,
+                    player.y + Player.HEIGHT / 2f,
+                    enemy.x + 16f,
+                    enemy.y + 16f
+                )
+
+            } else {
+
+                val move = inputManager.getMovement()
+
+                if (!move.isZero) {
+
+                    player.lookAt(player.x + move.x)
+
+                    player.weapon.lookAt(
+                        player.x + Player.WIDTH / 2f,
+                        player.y + Player.HEIGHT / 2f,
+                        player.x + move.x * 100f,
+                        player.y + move.y * 100f
+                    )
+                }
+            }
+
         } else {
-            targetX = mouseWorldPos.x
-            targetY = mouseWorldPos.y
-        }
 
-        player.lookAt(targetX)
-        player.weapon.lookAt(player.x + Player.WIDTH / 2f, player.y + Player.HEIGHT / 2f, targetX, targetY)
+            mouseWorldPos.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat())
+            viewport.unproject(mouseWorldPos)
+
+            val enemy = enemyManager.getNearestEnemy(player.x, player.y)
+
+            val targetX: Float
+            val targetY: Float
+
+            if (enemy != null &&
+                Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 200f) {
+
+                targetX = enemy.x + 16f
+                targetY = enemy.y + 16f
+
+            } else {
+
+                targetX = mouseWorldPos.x
+                targetY = mouseWorldPos.y
+            }
+
+            player.lookAt(targetX)
+
+            player.weapon.lookAt(
+                player.x + Player.WIDTH / 2f,
+                player.y + Player.HEIGHT / 2f,
+                targetX,
+                targetY
+            )
+        }
 
         game.batch.use(camera.combined) {
             enemyManager.render(it)

@@ -11,4 +11,6 @@ interface InputManager {
     fun isJustPressed(action: Action): Boolean
 
     fun getMovement(): Vector2
+
+
 }

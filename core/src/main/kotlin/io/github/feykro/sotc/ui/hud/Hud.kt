@@ -5,18 +5,24 @@ import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
+import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.Touchpad
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 
 class Hud {
 
-    private val stage = Stage(ScreenViewport())
+    val stage = Stage(ScreenViewport())
 
     private val table = Table()
 
     private val font: BitmapFont
 
     private val fpsCounter: FpsCounter
+
+    lateinit var movePad: Touchpad
+    lateinit var attackButton: ImageButton
 
     init {
 
@@ -58,5 +64,29 @@ class Hud {
     fun dispose() {
         font.dispose()
         stage.dispose()
+    }
+
+    fun createMobileControls(skin: Skin) {
+
+        movePad = Touchpad(10f, skin)
+
+        movePad.setBounds(
+            100f,
+            100f,
+            300f,
+            300f
+        )
+
+        attackButton = ImageButton(skin)
+
+        attackButton.setBounds(
+            stage.viewport.worldWidth - 400f,
+            160f,
+            250f,
+            250f
+        )
+
+        stage.addActor(movePad)
+        stage.addActor(attackButton)
     }
 }
