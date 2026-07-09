@@ -9,4 +9,5 @@ class Strigoi(
 ) : Enemy(x, y, texture) {
 
     override val speed = 70f
+    override val xpReward = 30
 }

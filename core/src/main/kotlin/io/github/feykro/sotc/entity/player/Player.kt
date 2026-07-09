@@ -26,14 +26,21 @@ class Player(private val texture: Texture) {
     private val speed = 200f
     private var health = 100
     private val maxHealth = 100
+
+    private var level = 1
+    private var xp = 0
+    private var xpToNextLevel = 100
+
     lateinit var weapon: Weapon
     private val hitbox = Rectangle()
     private var facingRight = true
 
     fun getHitbox(): Rectangle = hitbox
-
     fun getHealth(): Int = health
     fun getMaxHealth(): Int = maxHealth
+    fun getLevel() = level
+    fun getXp() = xp
+    fun getXpToNextLevel() = xpToNextLevel
 
     fun lookAt(targetX: Float) {
         facingRight = targetX > x + WIDTH / 2f
@@ -98,6 +105,21 @@ class Player(private val texture: Texture) {
     }
 
     fun isAlive(): Boolean = health > 0
+
+    fun addXp(amount: Int) {
+        xp += amount
+        while (xp >= xpToNextLevel) {
+            xp -= xpToNextLevel
+            levelUp()
+        }
+    }
+
+    private fun levelUp() {
+        level++
+
+        xpToNextLevel = (xpToNextLevel * 1.25f).toInt()
+
+    }
 
     private fun isBlocked(nextX: Float, nextY: Float, objects: MapObjects?): Boolean {
         if (objects == null) return false

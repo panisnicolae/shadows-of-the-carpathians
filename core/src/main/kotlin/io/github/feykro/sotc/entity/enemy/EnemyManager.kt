@@ -20,6 +20,7 @@ class EnemyManager(private val factory: EnemyFactory, private val player: Player
             enemy.update(delta, player, worldWidth, worldHeight,collisionObjects)
 
             if (enemy.canBeRemoved()) {
+                player.addXp(enemy.xpReward)
                 iterator.remove()
             }
         }

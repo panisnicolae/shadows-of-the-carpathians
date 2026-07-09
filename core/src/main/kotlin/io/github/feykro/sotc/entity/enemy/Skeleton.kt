@@ -25,6 +25,8 @@ class Skeleton(
     private var stateTime = 0f
     private var damageDone = false
 
+    override val xpReward = 25
+
     override val HEIGHT = 64f
     override val WIDTH = 64f
     private var animationState = SkeletonAnimationState.IDLE

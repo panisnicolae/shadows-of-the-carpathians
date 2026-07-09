@@ -86,12 +86,13 @@ class GameScreen(
             0f
         )
         camera.update()
-        enemyManager.spawnEnemy(
-            EnemyType.SKELETON,
-            20f,
-            20f
-        )
-        player.weapon = weaponFactory.create(WeaponType.CARBINE)
+        enemyManager.spawnEnemy(EnemyType.SKELETON, 50f, 50f)
+        enemyManager.spawnEnemy(EnemyType.SKELETON, 100f, 50f)
+        enemyManager.spawnEnemy(EnemyType.SKELETON, 150f, 50f)
+        enemyManager.spawnEnemy(EnemyType.SKELETON, 200f, 50f)
+        enemyManager.spawnEnemy(EnemyType.SKELETON, 250f, 50f)
+        enemyManager.spawnEnemy(EnemyType.SKELETON, 300f, 50f)
+        player.weapon = weaponFactory.create(WeaponType.BLUNDERBUSS)
     }
 
     override fun render(delta: Float) {
@@ -218,10 +219,11 @@ class GameScreen(
             player.getMaxHealth()
         )
 
-        /*hud.setXp(
+        hud.setXp(
             player.getXp(),
-            player.getMaxXp()
-        )*/
+            player.getXpToNextLevel()
+        )
+        hud.setLevel(player.getLevel())
 
         hud.update(delta)
         hud.render()

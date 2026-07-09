@@ -24,6 +24,7 @@ abstract class Enemy(
 
     protected open val speed = 50f
     protected var health = 500
+    abstract val xpReward: Int
 
     protected val direction = Vector2()
     protected var wanderTimer = 0f

@@ -7,9 +7,11 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
+import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad
+import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import io.github.feykro.sotc.entity.player.Player
 
@@ -18,6 +20,8 @@ class Hud {
     val stage = Stage(ScreenViewport())
 
     private val table = Table()
+    private val xpTable = Table()
+    private lateinit var levelLabel: Label
 
     private val font: BitmapFont
 
@@ -44,23 +48,30 @@ class Hud {
 
         fpsCounter = FpsCounter(font)
 
+        levelLabel = Label("Lv. 1", Label.LabelStyle(font, Color.WHITE))
+        levelLabel.setAlignment(Align.center)
+
         table.setFillParent(true)
         table.top()
         table.pad(10f)
 
-        table.add(fpsCounter.root).left()
-        healthBar.setPosition(
-            20f,
-            stage.viewport.worldHeight - 180f
-        )
+        xpTable.setFillParent(true)
+        xpTable.bottom()
+        xpTable.padBottom(20f)
+        xpBar.setSize(480f, 160f)
+        xpTable.defaults().center()
+        xpTable.add(levelLabel)
+            .padRight(10f)
+            .center()
 
-        xpBar.setPosition(
-            180f,
-            stage.viewport.worldHeight - 180f
-        )
+        xpTable.add(xpBar)
+
+
+        table.add(fpsCounter.root).left()
+        layoutHud()
 
         stage.addActor(healthBar)
-        stage.addActor(xpBar)
+        stage.addActor(xpTable)
         stage.addActor(table)
     }
 
@@ -75,6 +86,7 @@ class Hud {
 
     fun resize(width: Int, height: Int) {
         stage.viewport.update(width, height, true)
+        layoutHud()
     }
 
     fun dispose() {
@@ -88,6 +100,18 @@ class Hud {
 
     fun setXp(current: Int, max: Int) {
         xpBar.setValue(current, max)
+    }
+
+    fun setLevel(level: Int) {
+        levelLabel.setText("Lv. $level")
+    }
+
+    private fun layoutHud() {
+        healthBar.setSize(320f,160f)
+        healthBar.setPosition(
+            20f,
+            stage.viewport.worldHeight - 180f
+        )
     }
 
     fun createMobileControls(skin: Skin) {
