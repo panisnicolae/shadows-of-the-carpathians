@@ -2,6 +2,7 @@ package io.github.feykro.sotc.ui.hud
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -10,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad
 import com.badlogic.gdx.utils.viewport.ScreenViewport
+import io.github.feykro.sotc.entity.player.Player
 
 class Hud {
 
@@ -20,6 +22,8 @@ class Hud {
     private val font: BitmapFont
 
     private val fpsCounter: FpsCounter
+
+    private val healthBar = HealthBar()
 
     lateinit var movePad: Touchpad
     lateinit var attackButton: ImageButton
@@ -53,7 +57,23 @@ class Hud {
         stage.act(delta)
     }
 
-    fun render() {
+    fun render(batch: Batch, player: Player) {
+
+        batch.projectionMatrix = stage.camera.combined
+
+        batch.begin()
+        println("graphics: ${Gdx.graphics.width} x ${Gdx.graphics.height}")
+        println("viewport: ${stage.viewport.worldWidth} x ${stage.viewport.worldHeight}")
+
+        healthBar.render(
+            batch,
+            player.getHealth(),
+            player.getMaxHealth(),
+            20f,
+            Gdx.graphics.height-160f
+        )
+        batch.end()
+
         stage.draw()
     }
 

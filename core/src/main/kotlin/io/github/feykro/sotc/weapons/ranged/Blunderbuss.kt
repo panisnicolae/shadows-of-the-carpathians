@@ -12,19 +12,18 @@ class Blunderbuss(
     override val stats = WeaponStats(
         baseDamage = 12,
         damagePerLevel = 2,
-        baseAttackSpeed = 0.8f,
+        baseAttackSpeed = 1f,
         attackSpeedPerLevel = 0.05f
     )
 
     override val projectileSpeed = 400f
     override val weaponLength = 29f
 
-    override fun attack() {
+    override fun fire() {
         val topPos = getTopPosition()
+
         repeat(6) {
-
             val dir = getDirection()
-
             dir.rotateDeg(MathUtils.random(-12f, 12f))
 
             projectileManager.spawnBullet(
@@ -35,9 +34,5 @@ class Blunderbuss(
                 damage = damage
             )
         }
-    }
-
-    override fun update(delta: Float) {
-
     }
 }

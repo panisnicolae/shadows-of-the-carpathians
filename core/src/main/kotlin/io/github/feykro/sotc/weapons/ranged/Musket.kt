@@ -11,18 +11,16 @@ class Musket(
     override val stats = WeaponStats(
         baseDamage = 60,
         damagePerLevel = 6,
-        baseAttackSpeed = 0.5f,
+        baseAttackSpeed = 1.5f,
         attackSpeedPerLevel = 0.03f
     )
 
     override val projectileSpeed = 700f
     override val weaponLength = 47f
-    override fun attack() {
-        val topPos = getTopPosition()
-        val dir = getDirection()
 
-        println("Direction = $dir")
-        println("Top = ${getTopPosition()}")
+    override fun fire() {
+        val topPos = getTopPosition()
+
         projectileManager.spawnBullet(
             x = topPos.x,
             y = topPos.y,
@@ -30,9 +28,5 @@ class Musket(
             speed = projectileSpeed,
             damage = damage
         )
-    }
-
-    override fun update(delta: Float) {
-
     }
 }

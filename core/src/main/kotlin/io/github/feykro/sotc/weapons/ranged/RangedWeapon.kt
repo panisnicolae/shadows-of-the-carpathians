@@ -10,4 +10,20 @@ abstract class RangedWeapon(
 ) : Weapon(texture) {
 
     abstract val projectileSpeed: Float
+
+    private var attackTimer = 0f
+
+    open override fun update(delta: Float) {
+        attackTimer -= delta
+    }
+
+    final override fun attack() {
+        if (attackTimer > 0f) return
+
+        attackTimer = 1f / attackSpeed
+
+        fire()
+    }
+
+    protected abstract fun fire()
 }

@@ -91,7 +91,7 @@ class GameScreen(
             20f,
             20f
         )
-        player.weapon = weaponFactory.create(WeaponType.MUSKET)
+        player.weapon = weaponFactory.create(WeaponType.CARBINE)
     }
 
     override fun render(delta: Float) {
@@ -215,7 +215,7 @@ class GameScreen(
         }
 
         hud.update(delta)
-        hud.render()
+        hud.render(game.batch,player)
 
     }
 

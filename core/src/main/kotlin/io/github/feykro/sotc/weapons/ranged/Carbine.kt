@@ -12,15 +12,16 @@ class Carbine(
     override val stats = WeaponStats(
         baseDamage = 20,
         damagePerLevel = 3,
-        baseAttackSpeed = 2f,
+        baseAttackSpeed = 3f,
         attackSpeedPerLevel = 0.1f
     )
 
     override val projectileSpeed = 500f
     override val weaponLength = 31f
 
-    override fun attack() {
+    override fun fire() {
         val topPos = getTopPosition()
+
         projectileManager.spawnBullet(
             x = topPos.x,
             y = topPos.y,
@@ -28,9 +29,5 @@ class Carbine(
             speed = projectileSpeed,
             damage = damage
         )
-    }
-
-    override fun update(delta: Float) {
-
     }
 }

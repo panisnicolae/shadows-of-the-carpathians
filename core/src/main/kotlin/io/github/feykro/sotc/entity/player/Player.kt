@@ -25,11 +25,15 @@ class Player(private val texture: Texture) {
     }
     private val speed = 200f
     private var health = 100
+    private val maxHealth = 100
     lateinit var weapon: Weapon
     private val hitbox = Rectangle()
     private var facingRight = true
 
     fun getHitbox(): Rectangle = hitbox
+
+    fun getHealth(): Int = health
+    fun getMaxHealth(): Int = maxHealth
 
     fun lookAt(targetX: Float) {
         facingRight = targetX > x + WIDTH / 2f
