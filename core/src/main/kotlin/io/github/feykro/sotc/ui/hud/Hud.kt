@@ -23,7 +23,8 @@ class Hud {
 
     private val fpsCounter: FpsCounter
 
-    private val healthBar = HealthBar()
+    private val healthBar = FrameBar("ui/RED HEALTHBAR/PNG")
+    private val xpBar = FrameBar("ui/GREEN HEALTHBAR/PNG")
 
     lateinit var movePad: Touchpad
     lateinit var attackButton: ImageButton
@@ -48,7 +49,18 @@ class Hud {
         table.pad(10f)
 
         table.add(fpsCounter.root).left()
+        healthBar.setPosition(
+            20f,
+            stage.viewport.worldHeight - 180f
+        )
 
+        xpBar.setPosition(
+            180f,
+            stage.viewport.worldHeight - 180f
+        )
+
+        stage.addActor(healthBar)
+        stage.addActor(xpBar)
         stage.addActor(table)
     }
 
@@ -57,23 +69,7 @@ class Hud {
         stage.act(delta)
     }
 
-    fun render(batch: Batch, player: Player) {
-
-        batch.projectionMatrix = stage.camera.combined
-
-        batch.begin()
-        println("graphics: ${Gdx.graphics.width} x ${Gdx.graphics.height}")
-        println("viewport: ${stage.viewport.worldWidth} x ${stage.viewport.worldHeight}")
-
-        healthBar.render(
-            batch,
-            player.getHealth(),
-            player.getMaxHealth(),
-            20f,
-            Gdx.graphics.height-160f
-        )
-        batch.end()
-
+    fun render() {
         stage.draw()
     }
 
@@ -84,6 +80,14 @@ class Hud {
     fun dispose() {
         font.dispose()
         stage.dispose()
+    }
+
+    fun setHealth(current: Int, max: Int) {
+        healthBar.setValue(current, max)
+    }
+
+    fun setXp(current: Int, max: Int) {
+        xpBar.setValue(current, max)
     }
 
     fun createMobileControls(skin: Skin) {

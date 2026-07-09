@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.Animation
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.maps.MapObjects
+import com.badlogic.gdx.math.Vector2
 import io.github.feykro.sotc.entity.player.Player
 
 enum class SkeletonAnimationState {
@@ -60,7 +61,18 @@ class Skeleton(
 
             // aici verifici frame-ul
             if (!damageDone && stateTime >= 0.45f) {
-                player.takeDamage(20)
+
+                val distance = Vector2.dst(
+                    x + WIDTH / 2f,
+                    y + HEIGHT / 2f,
+                    player.x + Player.WIDTH / 2f,
+                    player.y + Player.HEIGHT / 2f
+                )
+
+                if (distance <= attackRange) {
+                    player.takeDamage(20)
+                }
+
                 damageDone = true
             }
 

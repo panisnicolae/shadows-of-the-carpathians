@@ -213,9 +213,18 @@ class GameScreen(
         if (showHitboxes) {
             renderHitboxes()
         }
+        hud.setHealth(
+            player.getHealth(),
+            player.getMaxHealth()
+        )
+
+        /*hud.setXp(
+            player.getXp(),
+            player.getMaxXp()
+        )*/
 
         hud.update(delta)
-        hud.render(game.batch,player)
+        hud.render()
 
     }
 
