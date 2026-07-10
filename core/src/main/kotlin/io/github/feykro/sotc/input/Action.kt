@@ -8,5 +8,6 @@ enum class Action {
     ATTACK,
     INTERACT,
     PAUSE,
-    TOGGLE_HITBOXES
+    TOGGLE_HITBOXES,
+    NEXT_WEAPON
 }

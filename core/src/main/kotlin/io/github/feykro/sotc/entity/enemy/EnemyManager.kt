@@ -1,12 +1,17 @@
 package io.github.feykro.sotc.entity.enemy
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.maps.MapObjects
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Array
 import io.github.feykro.sotc.entity.player.Player
 
-class EnemyManager(private val factory: EnemyFactory, private val player: Player) {
+class EnemyManager(
+    private val factory: EnemyFactory,
+    private val player: Player,
+    private val onLevelUp: () -> Unit
+) {
     private val enemies = Array<Enemy>()
 
     fun spawnEnemy(type: EnemyType, x: Float, y: Float) {
@@ -20,7 +25,10 @@ class EnemyManager(private val factory: EnemyFactory, private val player: Player
             enemy.update(delta, player, worldWidth, worldHeight,collisionObjects)
 
             if (enemy.canBeRemoved()) {
-                player.addXp(enemy.xpReward)
+                if (player.addXp(enemy.xpReward)) {
+                    Gdx.app.log("LEVEL", "callback")
+                    onLevelUp()
+                }
                 iterator.remove()
             }
         }

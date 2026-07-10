@@ -10,7 +10,7 @@ class Blunderbuss(
     projectileManager: ProjectileManager
 ) : RangedWeapon(texture, projectileManager) {
     override val stats = WeaponStats(
-        baseDamage = 12,
+        baseDamage = 30,
         damagePerLevel = 2,
         baseAttackSpeed = 1f,
         attackSpeedPerLevel = 0.05f

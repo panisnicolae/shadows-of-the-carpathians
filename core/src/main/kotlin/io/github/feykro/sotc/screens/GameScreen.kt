@@ -3,6 +3,7 @@ package io.github.feykro.sotc.screens
 import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.objects.RectangleMapObject
@@ -23,6 +24,8 @@ import io.github.feykro.sotc.input.DesktopInputManager
 import io.github.feykro.sotc.input.InputManager
 import io.github.feykro.sotc.input.MobileInputManager
 import io.github.feykro.sotc.ui.hud.Hud
+import io.github.feykro.sotc.ui.hud.UpgradeMenu
+import io.github.feykro.sotc.upgrade.UpgradeManager
 import io.github.feykro.sotc.weapons.WeaponFactory
 import io.github.feykro.sotc.weapons.WeaponType
 import io.github.feykro.sotc.weapons.projectile.ProjectileManager
@@ -46,14 +49,25 @@ class GameScreen(
     val worldHeight = mapHeight * tileHeight.toFloat()
     private val mapRenderer = OrthogonalTiledMapRenderer(map, 1f, game.batch)
     private val enemyFactory = EnemyFactory(game.assetManager)
-    private val enemyManager = EnemyManager(enemyFactory,player)
     private val projectileManager = ProjectileManager(game.assetManager.get("weapons/bullet.png", Texture::class.java))
     private val weaponFactory = WeaponFactory(game.assetManager, projectileManager)
     private lateinit var inputManager: InputManager
     private var showHitboxes = false
+    private var isPaused = false
     private val hud = Hud()
     private val mouseWorldPos = Vector2()
     private var isAutoAim = true
+    private lateinit var skin: Skin
+    private lateinit var upgradeMenu: UpgradeMenu
+
+    private lateinit var enemyManager: EnemyManager
+
+    private val weapons = listOf(
+        WeaponType.BLUNDERBUSS,
+        WeaponType.MUSKET,
+        WeaponType.CARBINE
+    )
+    private var currentWeapon = 0
 
     companion object {
         private val log = logger<GameScreen>()
@@ -62,10 +76,17 @@ class GameScreen(
     override fun show() {
         super.show()
         log.debug { "GameScreen gets shown" }
-
+        skin = Skin(
+            Gdx.files.internal("ui/pixthulhu/skin/pixthulhu-ui.json")
+        )
+        upgradeMenu = UpgradeMenu(
+            hud.stage,
+            skin
+        )
+        val multiplexer = InputMultiplexer()
+        multiplexer.addProcessor(hud.stage)
+        Gdx.input.inputProcessor = multiplexer
         if (Gdx.app.type == Application.ApplicationType.Android) {
-
-            val skin = Skin(Gdx.files.internal("ui/pixthulhu/skin/pixthulhu-ui.json"))
 
             hud.createMobileControls(skin)
 
@@ -86,34 +107,171 @@ class GameScreen(
             0f
         )
         camera.update()
+        enemyManager = EnemyManager(
+            enemyFactory,
+            player
+        ) {
+            isPaused = true
+
+            upgradeMenu.show(
+                UpgradeManager.randomUpgrades()
+            ) { upgrade ->
+
+                upgrade.apply(player)
+
+                isPaused = false
+            }
+        }
         enemyManager.spawnEnemy(EnemyType.SKELETON, 50f, 50f)
         enemyManager.spawnEnemy(EnemyType.SKELETON, 100f, 50f)
         enemyManager.spawnEnemy(EnemyType.SKELETON, 150f, 50f)
         enemyManager.spawnEnemy(EnemyType.SKELETON, 200f, 50f)
         enemyManager.spawnEnemy(EnemyType.SKELETON, 250f, 50f)
         enemyManager.spawnEnemy(EnemyType.SKELETON, 300f, 50f)
-        player.weapon = weaponFactory.create(WeaponType.BLUNDERBUSS)
+        player.weapon = weaponFactory.create(weapons[currentWeapon])
     }
 
     override fun render(delta: Float) {
 
+        ScreenUtils.clear(0.1f, 0.2f, 0.5f, 1f)
         viewport.apply()
-        val direction = inputManager.getMovement()
 
-        player.update(delta, direction, worldWidth, worldHeight, collisionObjects)
 
-        if (inputManager.isPressed(Action.ATTACK)) {
-            player.attack()
+        if (!isPaused) {
+
+            val direction = inputManager.getMovement()
+
+            player.update(
+                delta,
+                direction,
+                worldWidth,
+                worldHeight,
+                collisionObjects
+            )
+
+            if (inputManager.isPressed(Action.ATTACK)) {
+                player.attack()
+            }
+
+            if (inputManager.isJustPressed(Action.TOGGLE_HITBOXES)) {
+                showHitboxes = !showHitboxes
+            }
+
+            if (inputManager.isJustPressed(Action.NEXT_WEAPON)) {
+                nextWeapon()
+            }
+
+            enemyManager.update(
+                delta,
+                player.x,
+                player.y,
+                worldWidth,
+                worldHeight,
+                collisionObjects
+            )
+
+            projectileManager.update(
+                delta,
+                enemyManager.getEnemies(),
+                worldWidth,
+                worldHeight,
+                collisionObjects
+            )
+
+            if (!player.isAlive()) {
+                game.setScreen(GameOverScreen(game))
+                return
+            }
+
+            if (Gdx.app.type == Application.ApplicationType.Android) {
+
+                val enemy = enemyManager.getNearestEnemy(player.x, player.y)
+
+                if (enemy != null &&
+                    Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 200f
+                ) {
+
+                    player.lookAt(enemy.x)
+
+                    player.weapon.lookAt(
+                        player.x + Player.WIDTH / 2f,
+                        player.y + Player.HEIGHT / 2f,
+                        enemy.x + 16f,
+                        enemy.y + 16f
+                    )
+
+                } else {
+
+                    val move = inputManager.getMovement()
+
+                    if (!move.isZero) {
+
+                        player.lookAt(player.x + move.x)
+
+                        player.weapon.lookAt(
+                            player.x + Player.WIDTH / 2f,
+                            player.y + Player.HEIGHT / 2f,
+                            player.x + move.x * 100f,
+                            player.y + move.y * 100f
+                        )
+                    }
+                }
+
+            } else {
+
+                mouseWorldPos.set(
+                    Gdx.input.x.toFloat(),
+                    Gdx.input.y.toFloat()
+                )
+
+                viewport.unproject(mouseWorldPos)
+
+                val enemy = enemyManager.getNearestEnemy(player.x, player.y)
+
+                val targetX: Float
+                val targetY: Float
+
+                if (enemy != null &&
+                    Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 200f
+                ) {
+
+                    targetX = enemy.x + 16f
+                    targetY = enemy.y + 16f
+
+                } else {
+
+                    targetX = mouseWorldPos.x
+                    targetY = mouseWorldPos.y
+                }
+
+                player.lookAt(targetX)
+
+                player.weapon.lookAt(
+                    player.x + Player.WIDTH / 2f,
+                    player.y + Player.HEIGHT / 2f,
+                    targetX,
+                    targetY
+                )
+            }
+
+            hud.setHealth(
+                player.getHealth(),
+                player.getMaxHealth()
+            )
+
+            hud.setXp(
+                player.getXp(),
+                player.getXpToNextLevel()
+            )
+
+            hud.setLevel(player.getLevel())
         }
 
-        if (inputManager.isJustPressed(Action.TOGGLE_HITBOXES)) {
-            showHitboxes = !showHitboxes
-        }
 
-        ScreenUtils.clear(0.1f, 0.2f, 0.5f, 1.0f)
-
+        //camera
         val halfWidth = viewport.worldWidth / 2f
         val halfHeight = viewport.worldHeight / 2f
+
         camera.position.set(
             MathUtils.clamp(
                 player.x + Player.WIDTH / 2f,
@@ -127,107 +285,28 @@ class GameScreen(
             ),
             0f
         )
+
         camera.update()
 
+        //render
+
         mapRenderer.setView(camera)
-        mapRenderer.render(intArrayOf(0,1,2))
-
-        enemyManager.update(delta, player.x, player.y, worldWidth, worldHeight, collisionObjects)
-        projectileManager.update(delta, enemyManager.getEnemies(), worldWidth, worldHeight, collisionObjects)
-
-        if (!player.isAlive()) {
-            game.setScreen(GameOverScreen(game))
-            return
-        }
-
-        if (Gdx.app.type == Application.ApplicationType.Android) {
-
-            val enemy = enemyManager.getNearestEnemy(player.x, player.y)
-
-            if (enemy != null &&
-                Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 200f) {
-
-                player.lookAt(enemy.x)
-                player.weapon.lookAt(
-                    player.x + Player.WIDTH / 2f,
-                    player.y + Player.HEIGHT / 2f,
-                    enemy.x + 16f,
-                    enemy.y + 16f
-                )
-
-            } else {
-
-                val move = inputManager.getMovement()
-
-                if (!move.isZero) {
-
-                    player.lookAt(player.x + move.x)
-
-                    player.weapon.lookAt(
-                        player.x + Player.WIDTH / 2f,
-                        player.y + Player.HEIGHT / 2f,
-                        player.x + move.x * 100f,
-                        player.y + move.y * 100f
-                    )
-                }
-            }
-
-        } else {
-
-            mouseWorldPos.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat())
-            viewport.unproject(mouseWorldPos)
-
-            val enemy = enemyManager.getNearestEnemy(player.x, player.y)
-
-            val targetX: Float
-            val targetY: Float
-
-            if (enemy != null &&
-                Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 200f) {
-
-                targetX = enemy.x + 16f
-                targetY = enemy.y + 16f
-
-            } else {
-
-                targetX = mouseWorldPos.x
-                targetY = mouseWorldPos.y
-            }
-
-            player.lookAt(targetX)
-
-            player.weapon.lookAt(
-                player.x + Player.WIDTH / 2f,
-                player.y + Player.HEIGHT / 2f,
-                targetX,
-                targetY
-            )
-        }
+        mapRenderer.render(intArrayOf(0, 1, 2))
 
         game.batch.use(camera.combined) {
             enemyManager.render(it)
             player.render(it)
             projectileManager.render(it)
         }
+
         mapRenderer.render(intArrayOf(3))
 
         if (showHitboxes) {
             renderHitboxes()
         }
-        hud.setHealth(
-            player.getHealth(),
-            player.getMaxHealth()
-        )
-
-        hud.setXp(
-            player.getXp(),
-            player.getXpToNextLevel()
-        )
-        hud.setLevel(player.getLevel())
 
         hud.update(delta)
         hud.render()
-
     }
 
     override fun resize(width: Int, height: Int) {
@@ -269,5 +348,16 @@ class GameScreen(
 
             game.shapeRenderer.end()
         }
+    }
+
+    private fun nextWeapon() {
+        currentWeapon++
+
+        if (currentWeapon >= weapons.size)
+            currentWeapon = 0
+
+        player.weapon = weaponFactory.create(
+            weapons[currentWeapon]
+        )
     }
 }

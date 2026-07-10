@@ -23,9 +23,9 @@ class Player(private val texture: Texture) {
         const val HITBOX_OFFSET_X = 7f
         const val HITBOX_OFFSET_Y = 0f
     }
-    private val speed = 200f
+    private var speed = 200f
     private var health = 100
-    private val maxHealth = 100
+    private var maxHealth = 100
 
     private var level = 1
     private var xp = 0
@@ -106,19 +106,28 @@ class Player(private val texture: Texture) {
 
     fun isAlive(): Boolean = health > 0
 
-    fun addXp(amount: Int) {
+    fun addXp(amount: Int): Boolean {
         xp += amount
+
+        var leveledUp = false
+
         while (xp >= xpToNextLevel) {
             xp -= xpToNextLevel
-            levelUp()
+            level++
+            xpToNextLevel = (xpToNextLevel * 1.25f).toInt()
+            leveledUp = true
         }
+
+        return leveledUp
     }
 
-    private fun levelUp() {
-        level++
+    fun increaseMaxHealth(amount: Int) {
+        maxHealth += amount
+        health = maxHealth
+    }
 
-        xpToNextLevel = (xpToNextLevel * 1.25f).toInt()
-
+    fun increaseSpeed(multiplier: Float) {
+        speed *= multiplier
     }
 
     private fun isBlocked(nextX: Float, nextY: Float, objects: MapObjects?): Boolean {

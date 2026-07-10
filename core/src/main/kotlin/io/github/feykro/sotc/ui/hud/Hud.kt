@@ -2,22 +2,25 @@ package io.github.feykro.sotc.ui.hud
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
+import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ScreenViewport
-import io.github.feykro.sotc.entity.player.Player
+import io.github.feykro.sotc.upgrade.Upgrade
 
 class Hud {
 
     val stage = Stage(ScreenViewport())
+    private var skin: Skin? = null
 
     private val table = Table()
     private val xpTable = Table()
@@ -32,6 +35,8 @@ class Hud {
 
     lateinit var movePad: Touchpad
     lateinit var attackButton: ImageButton
+
+    fun getFont(): BitmapFont = font
 
     init {
 
@@ -112,6 +117,24 @@ class Hud {
             20f,
             stage.viewport.worldHeight - 180f
         )
+    }
+
+    fun showUpgradeMenu(upgrades: List<Upgrade>, onSelected: (Upgrade) -> Unit) {
+        val dialog = Table(skin)
+        dialog.setFillParent(true)
+        dialog.center()
+        // Adaugă butoane pentru fiecare upgrade din listă
+        upgrades.forEach { upgrade ->
+            val button = TextButton("${upgrade.title}\n${upgrade.description}", skin)
+            button.addListener(object : ClickListener() {
+                override fun clicked(event: InputEvent?, x: Float, y: Float) {
+                    onSelected(upgrade)
+                    dialog.remove()
+                }
+            })
+            dialog.add(button).pad(10f).row()
+        }
+        stage.addActor(dialog)
     }
 
     fun createMobileControls(skin: Skin) {

@@ -59,9 +59,7 @@ abstract class Enemy(
             player.x + Player.WIDTH / 2f,
             player.y + Player.HEIGHT / 2f
         )
-        println(
-            "distance=$distance enemy=(${x + WIDTH/2}, ${y + HEIGHT/2}) player=(${player.x + Player.WIDTH/2}, ${player.y + Player.HEIGHT/2})"
-        )
+
         if (distance <= attackRange) {
 
             direction.setZero()
