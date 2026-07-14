@@ -13,6 +13,9 @@ class EnemyManager(
     private val onLevelUp: () -> Unit
 ) {
     private val enemies = Array<Enemy>()
+    private var kills = 0
+
+    fun getKills() = kills
 
     fun spawnEnemy(type: EnemyType, x: Float, y: Float) {
         enemies.add(factory.create(type, x, y))
@@ -25,6 +28,7 @@ class EnemyManager(
             enemy.update(delta, player, worldWidth, worldHeight,collisionObjects)
 
             if (enemy.canBeRemoved()) {
+                kills++
                 if (player.addXp(enemy.xpReward)) {
                     Gdx.app.log("LEVEL", "callback")
                     onLevelUp()
@@ -48,10 +52,10 @@ class EnemyManager(
 
         for (enemy in enemies) {
             val distance = Vector2.dst2(
-                playerX,
-                playerY,
-                enemy.x,
-                enemy.y
+                playerX + Player.WIDTH / 2f,
+                playerY + Player.HEIGHT / 2f,
+                enemy.x + enemy.WIDTH / 2f,
+                enemy.y + enemy.HEIGHT / 2f
             )
 
             if (distance < minDistance) {

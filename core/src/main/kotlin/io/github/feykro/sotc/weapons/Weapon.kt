@@ -52,7 +52,9 @@ abstract class Weapon(
             targetY - ownerY,
             targetX - ownerX
         ) * MathUtils.radiansToDegrees - 90f
-
+        println("Owner: ($ownerX, $ownerY)")
+        println("Target: ($targetX, $targetY)")
+        println("Rotation: $lookRotation")
         if (state == WeaponState.IDLE) {
             rotation = lookRotation
         }

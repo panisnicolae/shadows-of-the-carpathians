@@ -35,6 +35,7 @@ class Hud {
     private val healthBar = FrameBar("ui/RED HEALTHBAR/PNG")
     private val xpBar = FrameBar("ui/GREEN HEALTHBAR/PNG")
     private lateinit var killsLabel: Label
+    private lateinit var healthLabel: Label
 
     lateinit var joystick: FloatingJoystick
     lateinit var attackButton: ImageButton
@@ -60,6 +61,11 @@ class Hud {
         levelLabel.setAlignment(Align.center)
 
         killsLabel = Label("Kills: 0", Label.LabelStyle(font, Color.WHITE))
+        healthLabel = Label(
+            "100 / 100",
+            Label.LabelStyle(font, Color.WHITE)
+        )
+        healthLabel.setAlignment(Align.center)
 
         table.setFillParent(true)
         table.top()
@@ -81,6 +87,7 @@ class Hud {
         layoutHud()
 
         stage.addActor(healthBar)
+        stage.addActor(healthLabel)
         stage.addActor(killsLabel)
         stage.addActor(xpTable)
         stage.addActor(table)
@@ -95,11 +102,13 @@ class Hud {
 
         stage.draw()
 
-        batch.projectionMatrix = stage.camera.combined
+        if (::joystick.isInitialized) {
+            batch.projectionMatrix = stage.camera.combined
 
-        batch.begin()
-        joystick.render(batch)
-        batch.end()
+            batch.begin()
+            joystick.render(batch)
+            batch.end()
+        }
     }
 
     fun resize(width: Int, height: Int) {
@@ -135,6 +144,11 @@ class Hud {
             stage.viewport.worldHeight - 180f
         )
         killsLabel.setPosition(healthBar.x+25f, healthBar.y+25f)
+        healthLabel.setPosition(
+            healthBar.x + healthBar.width + healthLabel.width / 2f,
+            healthBar.y + healthBar.height / 2f + healthLabel.height / 2f,
+            Align.center
+        )
     }
     fun createMobileControls(skin: Skin) {
 

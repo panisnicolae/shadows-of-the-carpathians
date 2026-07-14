@@ -18,8 +18,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad
 import com.badlogic.gdx.utils.ScreenUtils
 import io.github.feykro.sotc.MainGame
 import io.github.feykro.sotc.Ritual
+import io.github.feykro.sotc.entity.enemy.Enemy
 import io.github.feykro.sotc.entity.enemy.EnemyFactory
 import io.github.feykro.sotc.entity.enemy.EnemyManager
+import io.github.feykro.sotc.entity.enemy.EnemySpawner
 import io.github.feykro.sotc.entity.enemy.EnemyType
 import io.github.feykro.sotc.entity.player.Player
 import io.github.feykro.sotc.input.Action
@@ -52,6 +54,7 @@ class GameScreen(
     val worldHeight = mapHeight * tileHeight.toFloat()
     private val mapRenderer = OrthogonalTiledMapRenderer(map, 1f, game.batch)
     private val enemyFactory = EnemyFactory(game.assetManager)
+    private lateinit var enemySpawner: EnemySpawner
     private val projectileManager = ProjectileManager(game.assetManager.get("weapons/bullet.png", Texture::class.java))
     private val weaponFactory = WeaponFactory(game.assetManager, projectileManager)
     private lateinit var inputManager: InputManager
@@ -145,12 +148,18 @@ class GameScreen(
                 isPaused = false
             }
         }
-        enemyManager.spawnEnemy(EnemyType.SKELETON, 50f, 50f)
+        enemySpawner = EnemySpawner(
+            enemyManager,
+            viewport.worldWidth,
+            viewport.worldHeight
+        )
+        enemySpawner.startWave(1)
+        /*enemyManager.spawnEnemy(EnemyType.SKELETON, 50f, 50f)
         enemyManager.spawnEnemy(EnemyType.SKELETON, 100f, 50f)
         enemyManager.spawnEnemy(EnemyType.SKELETON, 150f, 50f)
         enemyManager.spawnEnemy(EnemyType.SKELETON, 200f, 50f)
         enemyManager.spawnEnemy(EnemyType.SKELETON, 250f, 50f)
-        enemyManager.spawnEnemy(EnemyType.SKELETON, 300f, 50f)
+        enemyManager.spawnEnemy(EnemyType.SKELETON, 300f, 50f)*/
         player.weapon = weaponFactory.create(weapons[currentWeapon])
     }
 
@@ -184,6 +193,12 @@ class GameScreen(
                 nextWeapon()
             }
 
+            enemySpawner.update(
+                delta,
+                player.x,
+                player.y
+            )
+
             enemyManager.update(
                 delta,
                 player.x,
@@ -214,13 +229,13 @@ class GameScreen(
                     Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 200f
                 ) {
 
-                    player.lookAt(enemy.x)
+                    player.lookAt(enemy.x + enemy.WIDTH / 2f)
 
                     player.weapon.lookAt(
                         player.x + Player.WIDTH / 2f,
                         player.y + Player.HEIGHT / 2f,
-                        enemy.x + 16f,
-                        enemy.y + 16f
+                        enemy.x + enemy.WIDTH / 2f,
+                        enemy.y + enemy.HEIGHT / 2f
                     )
 
                 } else {
@@ -258,8 +273,8 @@ class GameScreen(
                     Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 200f
                 ) {
 
-                    targetX = enemy.x + 16f
-                    targetY = enemy.y + 16f
+                    targetX = enemy.x + enemy.WIDTH / 2f
+                    targetY = enemy.y + enemy.HEIGHT / 2f
 
                 } else {
 
