@@ -2,6 +2,7 @@ package io.github.feykro.sotc.ui.hud
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.scenes.scene2d.InputEvent
@@ -15,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ScreenViewport
+import io.github.feykro.sotc.input.FloatingJoystick
 import io.github.feykro.sotc.upgrade.Upgrade
 
 class Hud {
@@ -32,8 +34,9 @@ class Hud {
 
     private val healthBar = FrameBar("ui/RED HEALTHBAR/PNG")
     private val xpBar = FrameBar("ui/GREEN HEALTHBAR/PNG")
+    private lateinit var killsLabel: Label
 
-    lateinit var movePad: Touchpad
+    lateinit var joystick: FloatingJoystick
     lateinit var attackButton: ImageButton
 
     fun getFont(): BitmapFont = font
@@ -56,6 +59,8 @@ class Hud {
         levelLabel = Label("Lv. 1", Label.LabelStyle(font, Color.WHITE))
         levelLabel.setAlignment(Align.center)
 
+        killsLabel = Label("Kills: 0", Label.LabelStyle(font, Color.WHITE))
+
         table.setFillParent(true)
         table.top()
         table.pad(10f)
@@ -76,6 +81,7 @@ class Hud {
         layoutHud()
 
         stage.addActor(healthBar)
+        stage.addActor(killsLabel)
         stage.addActor(xpTable)
         stage.addActor(table)
     }
@@ -85,8 +91,15 @@ class Hud {
         stage.act(delta)
     }
 
-    fun render() {
+    fun render(batch: Batch) {
+
         stage.draw()
+
+        batch.projectionMatrix = stage.camera.combined
+
+        batch.begin()
+        joystick.render(batch)
+        batch.end()
     }
 
     fun resize(width: Int, height: Int) {
@@ -111,43 +124,24 @@ class Hud {
         levelLabel.setText("Lv. $level")
     }
 
+    fun setKills(kills: Int) {
+        killsLabel.setText("Kills: $kills")
+    }
+
     private fun layoutHud() {
         healthBar.setSize(320f,160f)
         healthBar.setPosition(
             20f,
             stage.viewport.worldHeight - 180f
         )
+        killsLabel.setPosition(healthBar.x+25f, healthBar.y+25f)
     }
-
-    fun showUpgradeMenu(upgrades: List<Upgrade>, onSelected: (Upgrade) -> Unit) {
-        val dialog = Table(skin)
-        dialog.setFillParent(true)
-        dialog.center()
-        // Adaugă butoane pentru fiecare upgrade din listă
-        upgrades.forEach { upgrade ->
-            val button = TextButton("${upgrade.title}\n${upgrade.description}", skin)
-            button.addListener(object : ClickListener() {
-                override fun clicked(event: InputEvent?, x: Float, y: Float) {
-                    onSelected(upgrade)
-                    dialog.remove()
-                }
-            })
-            dialog.add(button).pad(10f).row()
-        }
-        stage.addActor(dialog)
-    }
-
     fun createMobileControls(skin: Skin) {
 
-        movePad = Touchpad(10f, skin)
-
-        movePad.setBounds(
-            100f,
-            100f,
-            300f,
-            300f
+        joystick = FloatingJoystick(
+            skin,
+            120f
         )
-
         attackButton = ImageButton(skin)
 
         attackButton.setBounds(
@@ -156,8 +150,45 @@ class Hud {
             250f,
             250f
         )
-
-        stage.addActor(movePad)
         stage.addActor(attackButton)
+        stage.addListener(object : com.badlogic.gdx.scenes.scene2d.InputListener() {
+
+            override fun touchDown(
+                event: InputEvent,
+                x: Float,
+                y: Float,
+                pointer: Int,
+                button: Int
+            ): Boolean {
+
+                // doar in coltul stanga jos
+                if (x < stage.viewport.worldWidth / 3f &&
+                    y < stage.viewport.worldHeight * 0.5f) {
+                    joystick.touchDown(x, y)
+                    return true
+                }
+
+                return false
+            }
+
+            override fun touchDragged(
+                event: InputEvent,
+                x: Float,
+                y: Float,
+                pointer: Int
+            ) {
+                joystick.touchDragged(x, y)
+            }
+
+            override fun touchUp(
+                event: InputEvent,
+                x: Float,
+                y: Float,
+                pointer: Int,
+                button: Int
+            ) {
+                joystick.touchUp()
+            }
+        })
     }
 }

@@ -11,10 +11,13 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad
 import com.badlogic.gdx.utils.ScreenUtils
 import io.github.feykro.sotc.MainGame
+import io.github.feykro.sotc.Ritual
 import io.github.feykro.sotc.entity.enemy.EnemyFactory
 import io.github.feykro.sotc.entity.enemy.EnemyManager
 import io.github.feykro.sotc.entity.enemy.EnemyType
@@ -62,6 +65,8 @@ class GameScreen(
 
     private lateinit var enemyManager: EnemyManager
 
+    private val rituals = mutableListOf<Ritual>()
+
     private val weapons = listOf(
         WeaponType.BLUNDERBUSS,
         WeaponType.MUSKET,
@@ -91,7 +96,7 @@ class GameScreen(
             hud.createMobileControls(skin)
 
             inputManager = MobileInputManager(
-                hud.movePad,
+                hud.joystick,
                 hud.attackButton
             )
 
@@ -107,6 +112,24 @@ class GameScreen(
             0f
         )
         camera.update()
+
+        val ritualLayer = map.layers["ritual"]
+
+        if (ritualLayer != null) {
+            for (obj in ritualLayer.objects) {
+                if (obj is RectangleMapObject) {
+                    val r = obj.rectangle
+
+                    rituals += Ritual(
+                        r.x,
+                        r.y,
+                        r.width,
+                        r.height
+                    )
+                }
+            }
+        }
+
         enemyManager = EnemyManager(
             enemyFactory,
             player
@@ -265,6 +288,7 @@ class GameScreen(
             )
 
             hud.setLevel(player.getLevel())
+            hud.setKills(enemyManager.getKills())
         }
 
 
@@ -306,7 +330,7 @@ class GameScreen(
         }
 
         hud.update(delta)
-        hud.render()
+        hud.render(game.batch)
     }
 
     override fun resize(width: Int, height: Int) {
