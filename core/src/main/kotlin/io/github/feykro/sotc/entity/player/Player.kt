@@ -3,8 +3,11 @@ package io.github.feykro.sotc.entity.player
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.maps.MapObjects
+import com.badlogic.gdx.maps.objects.PolygonMapObject
 import com.badlogic.gdx.maps.objects.RectangleMapObject
+import com.badlogic.gdx.math.Intersector
 import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.math.Polygon
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import io.github.feykro.sotc.weapons.Weapon
@@ -23,6 +26,14 @@ class Player(private val texture: Texture) {
         const val HITBOX_OFFSET_X = 7f
         const val HITBOX_OFFSET_Y = 0f
     }
+    private val hitbox = Polygon(
+        floatArrayOf(
+            0f, 0f,
+            HITBOX_WIDTH, 0f,
+            HITBOX_WIDTH, HITBOX_HEIGHT,
+            0f, HITBOX_HEIGHT
+        )
+    )
     private var speed = 200f
     private var health = 100
     private var maxHealth = 100
@@ -32,10 +43,9 @@ class Player(private val texture: Texture) {
     private var xpToNextLevel = 100
 
     lateinit var weapon: Weapon
-    private val hitbox = Rectangle()
     private var facingRight = true
 
-    fun getHitbox(): Rectangle = hitbox
+    fun getHitbox(): Polygon = hitbox
     fun getHealth(): Int = health
     fun getMaxHealth(): Int = maxHealth
     fun getLevel() = level
@@ -65,11 +75,9 @@ class Player(private val texture: Texture) {
         x = MathUtils.clamp(x, 0f, worldWidth - WIDTH)
         y = MathUtils.clamp(y, 0f, worldHeight - HEIGHT)
 
-        hitbox.set(
+        hitbox.setPosition(
             x + HITBOX_OFFSET_X,
-            y + HITBOX_OFFSET_Y,
-            HITBOX_WIDTH,
-            HITBOX_HEIGHT
+            y + HITBOX_OFFSET_Y
         )
         weapon.setOwnerPosition(x + WIDTH / 2f, y + HEIGHT / 2f)
         weapon.update(delta)
@@ -133,16 +141,29 @@ class Player(private val texture: Texture) {
     private fun isBlocked(nextX: Float, nextY: Float, objects: MapObjects?): Boolean {
         if (objects == null) return false
 
-        val testHitbox = Rectangle(
+        val testPolygon = Polygon(
+            floatArrayOf(
+                0f, 0f,
+                HITBOX_WIDTH, 0f,
+                HITBOX_WIDTH, HITBOX_HEIGHT,
+                0f, HITBOX_HEIGHT
+            )
+        )
+
+        testPolygon.setPosition(
             nextX + HITBOX_OFFSET_X,
-            nextY + HITBOX_OFFSET_Y,
-            HITBOX_WIDTH,
-            HITBOX_HEIGHT
+            nextY + HITBOX_OFFSET_Y
         )
 
         for (objectMap in objects) {
-            if (objectMap is RectangleMapObject) {
-                if (testHitbox.overlaps(objectMap.rectangle)) {
+            if (objectMap is PolygonMapObject) {
+
+                if (
+                    Intersector.overlapConvexPolygons(
+                        testPolygon,
+                        objectMap.polygon
+                    )
+                ) {
                     return true
                 }
             }

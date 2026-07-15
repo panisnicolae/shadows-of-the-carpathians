@@ -9,8 +9,8 @@ class Musket(
     projectileManager: ProjectileManager
 ) : RangedWeapon(texture, projectileManager) {
     override val stats = WeaponStats(
-        baseDamage = 60,
-        damagePerLevel = 6,
+        baseDamage = 200,
+        damagePerLevel = 100,
         baseAttackSpeed = 1.5f,
         attackSpeedPerLevel = 0.03f
     )

@@ -13,10 +13,10 @@ class EnemySpawner(
     private var currentWave = 1
 
     private var spawnTimer = 0f
-    private var spawnInterval = 3f
+    private var spawnInterval = 2f
 
     private fun maxAliveEnemies(): Int =
-        5 + currentWave * 2
+        10 + currentWave * 2
 
     fun startWave(wave: Int) {
         currentWave = wave
@@ -84,10 +84,10 @@ class EnemySpawner(
         playerY: Float
     ): Vector2 {
 
-        val halfW = cameraWidth / 2f
-        val halfH = cameraHeight / 2f
+        val halfW = cameraWidth
+        val halfH = cameraHeight
 
-        val margin = 150f
+        val margin = 300f
 
         return when (MathUtils.random(3)) {
 

@@ -3,10 +3,13 @@ package io.github.feykro.sotc.entity.enemy
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.maps.MapObjects
+import com.badlogic.gdx.maps.objects.PolygonMapObject
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.maps.objects.RectangleMapObject
+import com.badlogic.gdx.math.Intersector
+import com.badlogic.gdx.math.Polygon
 import io.github.feykro.sotc.entity.player.Player
 
 enum class EnemyState {
@@ -29,7 +32,7 @@ abstract class Enemy(
     protected val direction = Vector2()
     protected var wanderTimer = 0f
     protected var facingRight = true
-    private val hitbox = Rectangle()
+    private val hitbox = Polygon()
 
     protected open val attackRange = 24f
     protected open val attackCooldown = 1f
@@ -38,8 +41,15 @@ abstract class Enemy(
     private var state = EnemyState.WANDER
     private val detectionRadius = 150f
 
-    fun getHitbox(): Rectangle {
-        hitbox.set(x+16, y+16, WIDTH/2, HEIGHT/2)
+    fun getHitbox(): Polygon {
+        hitbox.vertices = floatArrayOf(
+            0f, 0f,
+            WIDTH / 2f, 0f,
+            WIDTH / 2f, HEIGHT / 2f,
+            0f, HEIGHT / 2f
+        )
+        hitbox.setPosition(x + (WIDTH - WIDTH/2f) / 2f, y + (HEIGHT - HEIGHT/2f) / 2f
+        )
         return hitbox
     }
 
@@ -139,16 +149,31 @@ abstract class Enemy(
 
         if (objects == null) return false
 
-        val testHitbox = Rectangle(
-            nextX + 16f,
-            nextY + 16f,
-            WIDTH / 2f,
-            HEIGHT / 2f
+        val testPolygon = Polygon(
+            floatArrayOf(
+                nextX + 16f, nextY + 16f,
+
+                nextX + 16f + WIDTH / 2f,
+                nextY + 16f,
+
+                nextX + 16f + WIDTH / 2f,
+                nextY + 16f + HEIGHT / 2f,
+
+                nextX + 16f,
+                nextY + 16f + HEIGHT / 2f
+            )
         )
 
         for (objectMap in objects) {
-            if (objectMap is RectangleMapObject) {
-                if (testHitbox.overlaps(objectMap.rectangle)) {
+
+            if (objectMap is PolygonMapObject) {
+
+                if (
+                    Intersector.overlapConvexPolygons(
+                        testPolygon,
+                        objectMap.polygon
+                    )
+                ) {
                     return true
                 }
             }

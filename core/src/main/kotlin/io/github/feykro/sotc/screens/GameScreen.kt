@@ -6,6 +6,7 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.maps.objects.PolygonMapObject
 import com.badlogic.gdx.maps.objects.RectangleMapObject
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
@@ -364,29 +365,35 @@ class GameScreen(
     }
 
     fun renderHitboxes() {
-        if (showHitboxes) {
-            game.shapeRenderer.projectionMatrix = camera.combined
 
-            game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        if (!showHitboxes)
+            return
 
-            // Player
-            val hb = player.getHitbox()
-            game.shapeRenderer.rect(hb.x, hb.y, hb.width, hb.height)
+        game.shapeRenderer.projectionMatrix = camera.combined
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
 
-            // Collisions
-            for (obj in collisionObjects) {
-                if (obj is RectangleMapObject) {
-                    val r = obj.rectangle
-                    game.shapeRenderer.rect(r.x, r.y, r.width, r.height)
-                }
+        // Player
+        game.shapeRenderer.polygon(
+            player.getHitbox().transformedVertices
+        )
+
+        // map objects
+        for (obj in collisionObjects) {
+            if (obj is PolygonMapObject) {
+                game.shapeRenderer.polygon(
+                    obj.polygon.transformedVertices
+                )
             }
-            for (enemy in enemyManager.getEnemies()) {
-                val hb = enemy.getHitbox()
-                game.shapeRenderer.rect(hb.x, hb.y, hb.width, hb.height)
-            }
-
-            game.shapeRenderer.end()
         }
+
+        // enemies
+        for (enemy in enemyManager.getEnemies()) {
+            game.shapeRenderer.polygon(
+                enemy.getHitbox().transformedVertices
+            )
+        }
+
+        game.shapeRenderer.end()
     }
 
     private fun nextWeapon() {

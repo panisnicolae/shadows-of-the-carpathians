@@ -3,6 +3,7 @@ package io.github.feykro.sotc.weapons.projectile
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.Sprite
+import com.badlogic.gdx.math.Polygon
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Pool
@@ -27,10 +28,17 @@ abstract class Projectile(
         protected set
 
     protected var active = false
-    private val hitbox = Rectangle()
+    private val hitbox = Polygon()
 
-    fun getHitbox(): Rectangle {
-        hitbox.set(x, y, sprite.width, sprite.height)
+    fun getHitbox(): Polygon {
+        hitbox.setVertices(
+            floatArrayOf(
+                x, y,
+                x + sprite.width, y,
+                x + sprite.width, y + sprite.height,
+                x, y + sprite.height
+            )
+        )
         return hitbox
     }
 
@@ -59,6 +67,15 @@ abstract class Projectile(
 
         x += direction.x * speed * delta
         y += direction.y * speed * delta
+
+        hitbox.setVertices(
+            floatArrayOf(
+                x, y,
+                x + sprite.width, y,
+                x + sprite.width, y + sprite.height,
+                x, y + sprite.height
+            )
+        )
     }
 
     open fun render(batch: Batch) {

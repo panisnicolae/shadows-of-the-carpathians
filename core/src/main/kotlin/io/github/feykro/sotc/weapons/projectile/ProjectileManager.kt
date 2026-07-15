@@ -3,7 +3,9 @@ package io.github.feykro.sotc.weapons.projectile
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.maps.MapObjects
+import com.badlogic.gdx.maps.objects.PolygonMapObject
 import com.badlogic.gdx.maps.objects.RectangleMapObject
+import com.badlogic.gdx.math.Intersector
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Array
 import io.github.feykro.sotc.entity.enemy.Enemy
@@ -58,9 +60,13 @@ class ProjectileManager(
             // Coliziune cu inamicii
             if (projectile.isActive()) {
                 for (enemy in enemies) {
-                    if (enemy.canBeHit() &&
-                        projectile.getHitbox().overlaps(enemy.getHitbox())) {
-
+                    if (
+                        enemy.canBeHit() &&
+                        Intersector.overlapConvexPolygons(
+                            projectile.getHitbox(),
+                            enemy.getHitbox()
+                        )
+                    ) {
                         enemy.takeDamage(projectile.damage)
                         projectile.destroy()
                     }
@@ -70,8 +76,13 @@ class ProjectileManager(
             // Coliziune cu obiectele hărții (ziduri, copaci)
             if (projectile.isActive() && collisionObjects != null) {
                 for (obj in collisionObjects) {
-                    if (obj is RectangleMapObject) {
-                        if (projectile.getHitbox().overlaps(obj.rectangle)) {
+                    if (obj is PolygonMapObject) {
+                        if (
+                            Intersector.overlapConvexPolygons(
+                                projectile.getHitbox(),
+                                obj.polygon
+                            )
+                        ) {
                             projectile.destroy()
                             break
                         }

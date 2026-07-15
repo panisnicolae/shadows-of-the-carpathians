@@ -123,6 +123,7 @@ class Hud {
 
     fun setHealth(current: Int, max: Int) {
         healthBar.setValue(current, max)
+        healthLabel.setText("$current / $max")
     }
 
     fun setXp(current: Int, max: Int) {
