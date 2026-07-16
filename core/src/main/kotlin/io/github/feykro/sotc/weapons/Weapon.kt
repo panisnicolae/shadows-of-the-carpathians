@@ -52,9 +52,7 @@ abstract class Weapon(
             targetY - ownerY,
             targetX - ownerX
         ) * MathUtils.radiansToDegrees - 90f
-        println("Owner: ($ownerX, $ownerY)")
-        println("Target: ($targetX, $targetY)")
-        println("Rotation: $lookRotation")
+
         if (state == WeaponState.IDLE) {
             rotation = lookRotation
         }
@@ -78,7 +76,7 @@ abstract class Weapon(
 
         sprite.setPosition(
             x - sprite.originX,
-            y - sprite.originY
+            y - sprite.originY -3f
         )
 
         sprite.rotation =
@@ -98,9 +96,6 @@ abstract class Weapon(
     protected fun getDirection(): Vector2 {
         val angle = getRenderRotation() + 90f
 
-        println("Rotation = $rotation")
-        println("RenderRotation = ${getRenderRotation()}")
-        println("Angle = $angle")
         return Vector2(
             MathUtils.cosDeg(rotation + 90f),
             MathUtils.sinDeg(rotation + 90f)

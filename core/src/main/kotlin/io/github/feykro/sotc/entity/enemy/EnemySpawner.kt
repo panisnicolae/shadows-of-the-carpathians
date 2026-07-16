@@ -1,12 +1,15 @@
 package io.github.feykro.sotc.entity.enemy
 
+import com.badlogic.gdx.maps.MapObjects
+import com.badlogic.gdx.maps.objects.PolygonMapObject
 import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Vector2
 
 class EnemySpawner(
     private val enemyManager: EnemyManager,
     private val cameraWidth: Float,
-    private val cameraHeight: Float
+    private val cameraHeight: Float,
+    private val spawnCollision: MapObjects
 ) {
 
     private var spawning = false
@@ -55,16 +58,44 @@ class EnemySpawner(
         playerY: Float
     ) {
 
-        val pos = randomSpawnOutsideCamera(
-            playerX,
-            playerY
-        )
+        repeat(20) {
 
-        enemyManager.spawnEnemy(
-            enemyType(),
-            pos.x,
-            pos.y
-        )
+            val pos = randomSpawnOutsideCamera(
+                playerX,
+                playerY
+            )
+
+            if (!isSpawnBlocked(pos.x, pos.y)) {
+
+                enemyManager.spawnEnemy(
+                    enemyType(),
+                    pos.x,
+                    pos.y
+                )
+
+                return
+            }
+        }
+    }
+
+    private fun isSpawnBlocked(
+        x: Float,
+        y: Float
+    ): Boolean {
+
+        val point = Vector2(x, y)
+
+        for (obj in spawnCollision) {
+
+            if (obj is PolygonMapObject) {
+
+                if (obj.polygon.contains(point.x, point.y)) {
+                    return true
+                }
+            }
+        }
+
+        return false
     }
 
     private fun enemyType(): EnemyType {

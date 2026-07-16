@@ -4,8 +4,12 @@ import com.badlogic.gdx.Application
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputMultiplexer
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Color.WHITE
+import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.maps.objects.PointMapObject
 import com.badlogic.gdx.maps.objects.PolygonMapObject
 import com.badlogic.gdx.maps.objects.RectangleMapObject
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
@@ -29,6 +33,7 @@ import io.github.feykro.sotc.input.Action
 import io.github.feykro.sotc.input.DesktopInputManager
 import io.github.feykro.sotc.input.InputManager
 import io.github.feykro.sotc.input.MobileInputManager
+import io.github.feykro.sotc.ui.MiniMap
 import io.github.feykro.sotc.ui.hud.Hud
 import io.github.feykro.sotc.ui.hud.UpgradeMenu
 import io.github.feykro.sotc.upgrade.UpgradeManager
@@ -41,9 +46,9 @@ import ktx.graphics.use
 class GameScreen(
     game: MainGame
 ) : BaseScreen(game) {
-    private val player = Player(Texture(Gdx.files.internal("player2.png")))
+    private val player = Player(Texture(Gdx.files.internal("hooded.png")))
     private val direction = Vector2()
-    private val map = TmxMapLoader().load("maps/map.tmx")
+    private val map = TmxMapLoader().load("maps/map2.tmx")
     private val collisionObjects = map.layers["collision"]!!.objects
     val mapWidth = map.properties["width", Int::class.java]
     val mapHeight = map.properties["height", Int::class.java]
@@ -92,6 +97,11 @@ class GameScreen(
             hud.stage,
             skin
         )
+        hud.createMiniMap(
+            Texture("ui/minimap.png"),
+            worldWidth,
+            worldHeight
+        )
         val multiplexer = InputMultiplexer()
         multiplexer.addProcessor(hud.stage)
         Gdx.input.inputProcessor = multiplexer
@@ -116,6 +126,14 @@ class GameScreen(
             0f
         )
         camera.update()
+
+        for (obj in map.layers["collision"].objects) {
+            if (obj is PointMapObject && obj.name == "player_spawn") {
+                player.x = obj.point.x
+                player.y = obj.point.y
+                break
+            }
+        }
 
         val ritualLayer = map.layers["ritual"]
 
@@ -152,7 +170,8 @@ class GameScreen(
         enemySpawner = EnemySpawner(
             enemyManager,
             viewport.worldWidth,
-            viewport.worldHeight
+            viewport.worldHeight,
+            map.layers["spawn_collision"].objects
         )
         enemySpawner.startWave(1)
         /*enemyManager.spawnEnemy(EnemyType.SKELETON, 50f, 50f)
@@ -217,7 +236,7 @@ class GameScreen(
                 collisionObjects
             )
 
-            if (!player.isAlive()) {
+            if (player.isDeathAnimationFinished()) {
                 game.setScreen(GameOverScreen(game))
                 return
             }
@@ -331,7 +350,24 @@ class GameScreen(
         //render
 
         mapRenderer.setView(camera)
-        mapRenderer.render(intArrayOf(0, 1, 2))
+        mapRenderer.render(intArrayOf(0, 1, 3))
+
+        game.shapeRenderer.projectionMatrix = camera.combined
+        Gdx.gl.glEnable(GL20.GL_BLEND)
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+        game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+
+        game.shapeRenderer.color.set(0.2f, 0.2f, 0.2f, 0.40f)
+
+        game.shapeRenderer.ellipse(
+            player.x + 8f,
+            player.y - 3f,
+            16f,
+            6f
+        )
+
+        game.shapeRenderer.end()
+        Gdx.gl.glDisable(GL20.GL_BLEND)
 
         game.batch.use(camera.combined) {
             enemyManager.render(it)
@@ -339,14 +375,14 @@ class GameScreen(
             projectileManager.render(it)
         }
 
-        mapRenderer.render(intArrayOf(3))
+        mapRenderer.render(intArrayOf(2, 4))
 
         if (showHitboxes) {
             renderHitboxes()
         }
 
         hud.update(delta)
-        hud.render(game.batch)
+        hud.render(game.batch, game.shapeRenderer, player, rituals)
     }
 
     override fun resize(width: Int, height: Int) {
@@ -370,6 +406,7 @@ class GameScreen(
             return
 
         game.shapeRenderer.projectionMatrix = camera.combined
+        game.shapeRenderer.color.set(WHITE)
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
 
         // Player

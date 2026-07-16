@@ -2,9 +2,11 @@ package io.github.feykro.sotc.ui.hud
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
@@ -16,7 +18,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ScreenViewport
+import io.github.feykro.sotc.Ritual
+import io.github.feykro.sotc.entity.player.Player
 import io.github.feykro.sotc.input.FloatingJoystick
+import io.github.feykro.sotc.ui.MiniMap
 import io.github.feykro.sotc.upgrade.Upgrade
 
 class Hud {
@@ -39,6 +44,7 @@ class Hud {
 
     lateinit var joystick: FloatingJoystick
     lateinit var attackButton: ImageButton
+    private lateinit var miniMap: MiniMap
 
     fun getFont(): BitmapFont = font
 
@@ -98,9 +104,48 @@ class Hud {
         stage.act(delta)
     }
 
-    fun render(batch: Batch) {
+    fun render(
+        batch: Batch,
+        shapeRenderer: ShapeRenderer,
+        player: Player,
+        rituals: List<Ritual>
+    ) {
 
         stage.draw()
+
+        if (::miniMap.isInitialized) {
+
+            // poziția în dreapta sus
+            miniMap.x = stage.viewport.worldWidth - miniMap.width - 20f
+            miniMap.y = stage.viewport.worldHeight - miniMap.height - 20f
+
+            batch.projectionMatrix = stage.camera.combined
+
+            batch.begin()
+            miniMap.renderBackground(batch)
+            batch.end()
+
+            shapeRenderer.projectionMatrix = stage.camera.combined
+
+            shapeRenderer.color = Color.BLACK
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+            shapeRenderer.rect(
+                miniMap.x,
+                miniMap.y,
+                miniMap.width,
+                miniMap.height
+            )
+            shapeRenderer.end()
+
+            shapeRenderer.color = Color.YELLOW
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
+            miniMap.renderMarkers(
+                shapeRenderer,
+                player,
+                rituals
+            )
+            shapeRenderer.end()
+        }
 
         if (::joystick.isInitialized) {
             batch.projectionMatrix = stage.camera.combined
@@ -150,6 +195,27 @@ class Hud {
             healthBar.y + healthBar.height / 2f + healthLabel.height / 2f,
             Align.center
         )
+        if (::miniMap.isInitialized) {
+            miniMap.x = stage.viewport.worldWidth - miniMap.width - 20f
+            miniMap.y = stage.viewport.worldHeight - miniMap.height - 20f
+        }
+    }
+
+    fun createMiniMap(
+        texture: Texture,
+        worldWidth: Float,
+        worldHeight: Float
+    ) {
+        miniMap = MiniMap(
+            texture,
+            worldWidth,
+            worldHeight
+        )
+
+        miniMap.width = 320f
+        miniMap.height = 480f
+
+        layoutHud()
     }
     fun createMobileControls(skin: Skin) {
 
