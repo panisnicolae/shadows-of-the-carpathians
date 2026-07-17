@@ -5,9 +5,7 @@ import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.maps.MapObjects
 import com.badlogic.gdx.maps.objects.PolygonMapObject
 import com.badlogic.gdx.math.MathUtils
-import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
-import com.badlogic.gdx.maps.objects.RectangleMapObject
 import com.badlogic.gdx.math.Intersector
 import com.badlogic.gdx.math.Polygon
 import io.github.feykro.sotc.entity.player.Player
@@ -41,15 +39,25 @@ abstract class Enemy(
     private var state = EnemyState.WANDER
     private val detectionRadius = 150f
 
-    fun getHitbox(): Polygon {
+    open val HITBOX_WIDTH = WIDTH / 2.5f
+    open val HITBOX_HEIGHT = HEIGHT / 2f
+    open val HITBOX_OFFSET_X = (WIDTH - HITBOX_WIDTH) / 2f
+    open val HITBOX_OFFSET_Y = (HEIGHT - HITBOX_HEIGHT) / 2f
+
+    fun setupHitbox() {
         hitbox.vertices = floatArrayOf(
             0f, 0f,
-            WIDTH / 2f, 0f,
-            WIDTH / 2f, HEIGHT / 2f,
-            0f, HEIGHT / 2f
+            HITBOX_WIDTH, 0f,
+            HITBOX_WIDTH, HITBOX_HEIGHT,
+            0f, HITBOX_HEIGHT
         )
-        hitbox.setPosition(x + (WIDTH - WIDTH/2f) / 2f, y + (HEIGHT - HEIGHT/2f) / 2f
-        )
+    }
+
+    fun getHitbox(): Polygon {
+        if (hitbox.vertices.isEmpty()) {
+            setupHitbox()
+        }
+        hitbox.setPosition(x + HITBOX_OFFSET_X, y + HITBOX_OFFSET_Y)
         return hitbox
     }
 
@@ -71,16 +79,15 @@ abstract class Enemy(
         )
 
         if (distance <= attackRange) {
-
             direction.setZero()
-
+            facingRight = player.x + Player.WIDTH / 2f > x + WIDTH / 2f
             if (attackTimer <= 0f) {
                 attack()
                 attackTimer = attackCooldown
             }
-
             return
         }
+
         state =
             if (distance < detectionRadius)
                 EnemyState.CHASE
@@ -90,13 +97,8 @@ abstract class Enemy(
         when (state) {
             EnemyState.WANDER -> {
                 wanderTimer -= delta
-
                 if (wanderTimer <= 0f) {
-                    direction.set(
-                        MathUtils.random(-1f, 1f),
-                        MathUtils.random(-1f, 1f)
-                    ).nor()
-
+                    direction.set(MathUtils.random(-1f, 1f), MathUtils.random(-1f, 1f)).nor()
                     wanderTimer = MathUtils.random(1f, 3f)
                 }
             }
@@ -112,13 +114,11 @@ abstract class Enemy(
         else if (direction.x < 0) facingRight = false
 
         val nextX = x + direction.x * speed * delta
-
         if (!isBlocked(nextX, y, collisionObjects)) {
             x = nextX
         }
 
         val nextY = y + direction.y * speed * delta
-
         if (!isBlocked(x, nextY, collisionObjects)) {
             y = nextY
         }
@@ -141,44 +141,19 @@ abstract class Enemy(
     protected open fun attack() {
     }
 
-    private fun isBlocked(
-        nextX: Float,
-        nextY: Float,
-        objects: MapObjects?
-    ): Boolean {
-
+    private fun isBlocked(nextX: Float, nextY: Float, objects: MapObjects?): Boolean {
         if (objects == null) return false
 
-        val testPolygon = Polygon(
-            floatArrayOf(
-                nextX + 16f, nextY + 16f,
-
-                nextX + 16f + WIDTH / 2f,
-                nextY + 16f,
-
-                nextX + 16f + WIDTH / 2f,
-                nextY + 16f + HEIGHT / 2f,
-
-                nextX + 16f,
-                nextY + 16f + HEIGHT / 2f
-            )
-        )
+        val testHitbox = getHitbox()
+        testHitbox.setPosition(nextX + HITBOX_OFFSET_X, nextY + HITBOX_OFFSET_Y)
 
         for (objectMap in objects) {
-
             if (objectMap is PolygonMapObject) {
-
-                if (
-                    Intersector.overlapConvexPolygons(
-                        testPolygon,
-                        objectMap.polygon
-                    )
-                ) {
+                if (Intersector.overlapConvexPolygons(testHitbox, objectMap.polygon)) {
                     return true
                 }
             }
         }
-
         return false
     }
 }

@@ -8,6 +8,10 @@ import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.utils.Pool
 
+enum class ProjectileOwner {
+    PLAYER,
+    ENEMY
+}
 abstract class Projectile(
     texture: Texture
 ) : Pool.Poolable {
@@ -24,40 +28,42 @@ abstract class Projectile(
 
     protected var speed = 0f
 
+    protected open val width = 32f
+    protected open val height = 32f
+
     var damage = 0
         protected set
-
+    var owner = ProjectileOwner.PLAYER
     protected var active = false
     private val hitbox = Polygon()
 
+    init {
+        hitbox.vertices = floatArrayOf(-4f,-4f,4f,-4f,4f,4f,-4f,4f)
+    }
+
     fun getHitbox(): Polygon {
-        hitbox.setVertices(
-            floatArrayOf(
-                x, y,
-                x + sprite.width, y,
-                x + sprite.width, y + sprite.height,
-                x, y + sprite.height
-            )
-        )
+        hitbox.setPosition(x, y)
+        hitbox.rotation = sprite.rotation
         return hitbox
     }
 
-    fun spawn(
-        x: Float,
-        y: Float,
-        direction: Vector2,
-        speed: Float,
-        damage: Int
-    ) {
+    fun spawn(x: Float, y: Float, direction: Vector2, speed: Float, damage: Int) {
         this.x = x
         this.y = y
-
         this.direction.set(direction).nor()
-
         this.speed = speed
         this.damage = damage
 
         this.sprite.rotation = this.direction.angleDeg() - 90f
+
+        val hw = width * 0.4f
+        val hh = height * 0.4f
+        hitbox.vertices = floatArrayOf(
+            -hw, -hh,
+            hw, -hh,
+            hw, hh,
+            -hw, hh
+        )
 
         active = true
     }
@@ -67,21 +73,14 @@ abstract class Projectile(
 
         x += direction.x * speed * delta
         y += direction.y * speed * delta
-
-        hitbox.setVertices(
-            floatArrayOf(
-                x, y,
-                x + sprite.width, y,
-                x + sprite.width, y + sprite.height,
-                x, y + sprite.height
-            )
-        )
     }
 
     open fun render(batch: Batch) {
         if (!active) return
 
-        sprite.setPosition(x, y)
+        sprite.setSize(width,height)
+        sprite.setOriginCenter()
+        sprite.setPosition(x - width / 2f, y - height / 2f)
         sprite.draw(batch)
     }
 

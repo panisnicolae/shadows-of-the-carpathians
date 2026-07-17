@@ -100,13 +100,23 @@ class EnemySpawner(
 
     private fun enemyType(): EnemyType {
 
-        return when {
-
-            currentWave <= 2 ->
-                EnemyType.SKELETON
-
-            else ->
-                EnemyType.SKELETON
+//        return when {
+//
+//            currentWave <= 2 ->
+//                EnemyType.SKELETON
+//            currentWave <= 2 ->
+//                EnemyType.NECROMANCER
+//
+//            else ->
+//                if (MathUtils.randomBoolean(0.3f))
+//                    EnemyType.NECROMANCER
+//                else
+//                    EnemyType.SKELETON
+//        }
+        return if (MathUtils.randomBoolean()) {
+            EnemyType.SKELETON
+        } else {
+            EnemyType.NECROMANCER
         }
     }
 

@@ -21,7 +21,7 @@ class EnemyManager(
         enemies.add(factory.create(type, x, y))
     }
 
-    fun update(delta: Float, playerX: Float, playerY: Float, worldWidth: Float, worldHeight: Float,collisionObjects: MapObjects?) {
+    fun update(delta: Float, worldWidth: Float, worldHeight: Float,collisionObjects: MapObjects?) {
         val iterator = enemies.iterator()
         while (iterator.hasNext()) {
             val enemy = iterator.next()
