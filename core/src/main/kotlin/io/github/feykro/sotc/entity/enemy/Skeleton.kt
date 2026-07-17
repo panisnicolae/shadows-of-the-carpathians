@@ -29,6 +29,12 @@ class Skeleton(
 
     override val HEIGHT = 64f
     override val WIDTH = 64f
+
+    override val HITBOX_WIDTH = 16f
+    override val HITBOX_HEIGHT = 32f
+    override val HITBOX_OFFSET_X = 24f
+    override val HITBOX_OFFSET_Y = 16f
+
     private var animationState = SkeletonAnimationState.IDLE
     private val walkAnimation: Animation<TextureRegion>
     private val idleAnimation: Animation<TextureRegion>

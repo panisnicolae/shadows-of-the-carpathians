@@ -29,7 +29,7 @@ class Player(private val texture: Texture) {
         const val HEIGHT = 32f
 
         const val HITBOX_WIDTH = 18f
-        const val HITBOX_HEIGHT = 32f
+        const val HITBOX_HEIGHT = 27f
 
         const val HITBOX_OFFSET_X = 7f
         const val HITBOX_OFFSET_Y = 0f

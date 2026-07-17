@@ -13,67 +13,82 @@ import com.badlogic.gdx.scenes.scene2d.ui.ImageButton
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton
-import com.badlogic.gdx.scenes.scene2d.ui.Touchpad
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import io.github.feykro.sotc.Ritual
 import io.github.feykro.sotc.entity.player.Player
 import io.github.feykro.sotc.input.FloatingJoystick
 import io.github.feykro.sotc.ui.MiniMap
-import io.github.feykro.sotc.upgrade.Upgrade
+import ktx.actors.plusAssign
+import ktx.graphics.use
+import ktx.scene2d.*
 
 class Hud {
-
     val stage = Stage(ScreenViewport())
-    private var skin: Skin? = null
+    private val font: BitmapFont
+    private val fpsCounter: FpsCounter
+    private val healthBar = FrameBar("ui/RED HEALTHBAR/PNG")
+    private val xpBar = FrameBar("ui/GREEN HEALTHBAR/PNG")
+
+    private val levelLabel: Label
+    private val killsLabel: Label
+    private val healthLabel: Label
 
     private val table = Table()
     private val xpTable = Table()
-    private lateinit var levelLabel: Label
-
-    private val font: BitmapFont
-
-    private val fpsCounter: FpsCounter
-
-    private val healthBar = FrameBar("ui/RED HEALTHBAR/PNG")
-    private val xpBar = FrameBar("ui/GREEN HEALTHBAR/PNG")
-    private lateinit var killsLabel: Label
-    private lateinit var healthLabel: Label
 
     lateinit var joystick: FloatingJoystick
     lateinit var attackButton: ImageButton
     private lateinit var miniMap: MiniMap
 
-    fun getFont(): BitmapFont = font
-
     init {
-
-        val generator =
-            FreeTypeFontGenerator(Gdx.files.internal("ui/Roboto-Regular.ttf"))
-
+        val generator = FreeTypeFontGenerator(Gdx.files.internal("ui/Roboto-Regular.ttf"))
         val parameter = FreeTypeFontGenerator.FreeTypeFontParameter().apply {
             size = 24
             color = Color.WHITE
         }
-
         font = generator.generateFont(parameter)
         generator.dispose()
 
         fpsCounter = FpsCounter(font)
+        val labelStyle = Label.LabelStyle(font, Color.WHITE)
 
-        levelLabel = Label("Lv. 1", Label.LabelStyle(font, Color.WHITE))
-        levelLabel.setAlignment(Align.center)
+        levelLabel = Label("Lv. 1", labelStyle)
+        killsLabel = Label("Kills: 0", labelStyle)
+        healthLabel = Label("100 / 100", labelStyle).apply { setAlignment(Align.center) }
 
-        killsLabel = Label("Kills: 0", Label.LabelStyle(font, Color.WHITE))
-        healthLabel = Label(
-            "100 / 100",
-            Label.LabelStyle(font, Color.WHITE)
-        )
-        healthLabel.setAlignment(Align.center)
+        stage.actors {
+            table {
+                top().left().pad(10f)
+                setFillParent(true)
+                stack {
+                    add(healthBar)
+                    container(killsLabel) {
+                        left().bottom().padLeft(25f).padBottom(25f)
+                    }
+                }.cell(width = 320f, height = 160f)
 
-        table.setFillParent(true)
+                add(healthLabel).expandX().center()
+
+                container {
+                    name = "miniMapContainer"
+                }.right().size(200f,200f)
+
+                row()
+
+                add(fpsCounter.root).left().colspan(3)
+            }
+
+            table {
+                bottom().padBottom(20f)
+                setFillParent(true)
+
+                add(levelLabel).padRight(10f)
+                add(xpBar).width(480f).height(160f)
+            }
+        }
+
+        /*table.setFillParent(true)
         table.top()
         table.pad(10f)
 
@@ -96,7 +111,7 @@ class Hud {
         stage.addActor(healthLabel)
         stage.addActor(killsLabel)
         stage.addActor(xpTable)
-        stage.addActor(table)
+        stage.addActor(table)*/
     }
 
     fun update(delta: Float) {
@@ -114,51 +129,19 @@ class Hud {
         stage.draw()
 
         if (::miniMap.isInitialized) {
-
-            // poziția în dreapta sus
-            miniMap.x = stage.viewport.worldWidth - miniMap.width - 20f
-            miniMap.y = stage.viewport.worldHeight - miniMap.height - 20f
-
-            batch.projectionMatrix = stage.camera.combined
-
-            batch.begin()
-            miniMap.renderBackground(batch)
-            batch.end()
-
-            shapeRenderer.projectionMatrix = stage.camera.combined
-
-            shapeRenderer.color = Color.BLACK
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-            shapeRenderer.rect(
-                miniMap.x,
-                miniMap.y,
-                miniMap.width,
-                miniMap.height
-            )
-            shapeRenderer.end()
-
-            shapeRenderer.color = Color.YELLOW
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled)
-            miniMap.renderMarkers(
-                shapeRenderer,
-                player,
-                rituals
-            )
-            shapeRenderer.end()
+            miniMap.player = player
+            miniMap.rituals = rituals
         }
 
         if (::joystick.isInitialized) {
-            batch.projectionMatrix = stage.camera.combined
-
-            batch.begin()
-            joystick.render(batch)
-            batch.end()
+            batch.use(stage.camera.combined) {
+                joystick.render(it)
+            }
         }
     }
 
     fun resize(width: Int, height: Int) {
         stage.viewport.update(width, height, true)
-        layoutHud()
     }
 
     fun dispose() {
@@ -206,19 +189,11 @@ class Hud {
         worldWidth: Float,
         worldHeight: Float
     ) {
-        miniMap = MiniMap(
-            texture,
-            worldWidth,
-            worldHeight
-        )
-
-        miniMap.width = 320f
-        miniMap.height = 480f
-
-        layoutHud()
+        miniMap = MiniMap(texture, worldWidth, worldHeight)
+        val container = stage.root.findActor<com.badlogic.gdx.scenes.scene2d.ui.Container<MiniMap>>("miniMapContainer")
+        container?.actor = miniMap
     }
     fun createMobileControls(skin: Skin) {
-
         joystick = FloatingJoystick(
             skin,
             120f

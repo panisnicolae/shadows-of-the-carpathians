@@ -10,6 +10,7 @@ dependencies {
   implementation "io.github.libktx:ktx-collections:$ktxVersion"
   implementation "io.github.libktx:ktx-log:$ktxVersion"
   implementation "io.github.libktx:ktx-graphics:$ktxVersion"
+  implementation "io.github.libktx:ktx-actors:$ktxVersion"
 
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
