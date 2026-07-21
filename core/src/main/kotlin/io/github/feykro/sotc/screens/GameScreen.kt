@@ -22,6 +22,7 @@ import io.github.feykro.sotc.Ritual
 import io.github.feykro.sotc.entity.enemy.EnemyFactory
 import io.github.feykro.sotc.entity.enemy.EnemyManager
 import io.github.feykro.sotc.entity.enemy.EnemySpawner
+import io.github.feykro.sotc.entity.enemy.EnemyType
 import io.github.feykro.sotc.entity.player.Player
 import io.github.feykro.sotc.input.Action
 import io.github.feykro.sotc.input.DesktopInputManager
@@ -71,6 +72,7 @@ class GameScreen(
         WeaponType.CARBINE
     )
     private var currentWeapon = 0
+    private var isAutoAim = true
 
     companion object {
         private val log = logger<GameScreen>()
@@ -139,6 +141,7 @@ class GameScreen(
         )
         enemySpawner.startWave(1)
         player.weapon = weaponFactory.create(weapons[currentWeapon])
+        enemyManager.spawnEnemy(EnemyType.ZMEU, player.x + 150f, player.y + 150f)
     }
 
     override fun render(delta: Float) {
@@ -158,6 +161,9 @@ class GameScreen(
             if (inputManager.isJustPressed(Action.NEXT_WEAPON)) {
                 nextWeapon()
             }
+            if (inputManager.isJustPressed(Action.TOGGLE_AUTO_AIM)) {
+                isAutoAim = !isAutoAim
+            }
 
             enemySpawner.update(delta, player.x, player.y)
             enemyManager.update(delta, worldWidth, worldHeight, collisionObjects)
@@ -169,54 +175,44 @@ class GameScreen(
                 return
             }
 
-            if (Gdx.app.type == Application.ApplicationType.Android) {
-                val enemy = enemyManager.getNearestEnemy(player.x, player.y)
+            val manualTargetX: Float
+            val manualTargetY: Float
 
-                if (enemy != null && Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 200f) {
-                    player.lookAt(enemy.x + enemy.WIDTH / 2f)
-                    player.weapon.lookAt(
-                        player.x + Player.WIDTH / 2f,
-                        player.y + Player.HEIGHT / 2f,
-                        enemy.x + enemy.WIDTH / 2f,
-                        enemy.y + enemy.HEIGHT / 2f
-                    )
+            if (Gdx.app.type == Application.ApplicationType.Android) {
+                val move = inputManager.getMovement()
+                if (!move.isZero) {
+                    manualTargetX = player.x + move.x * 100f
+                    manualTargetY = player.y + move.y * 100f
                 } else {
-                    val move = inputManager.getMovement()
-                    if (!move.isZero) {
-                        player.lookAt(player.x + move.x)
-                        player.weapon.lookAt(
-                            player.x + Player.WIDTH / 2f,
-                            player.y + Player.HEIGHT / 2f,
-                            player.x + move.x * 100f,
-                            player.y + move.y * 100f
-                        )
-                    }
+                    manualTargetX = if (player.x > 0) player.x + 100f else player.x - 100f
+                    manualTargetY = player.y
                 }
             } else {
                 mouseWorldPos.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat())
                 viewport.unproject(mouseWorldPos)
-
-                val enemy = enemyManager.getNearestEnemy(player.x, player.y)
-
-                val targetX: Float
-                val targetY: Float
-
-                if (enemy != null && Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 200f) {
-                    targetX = enemy.x + enemy.WIDTH / 2f
-                    targetY = enemy.y + enemy.HEIGHT / 2f
-                } else {
-                    targetX = mouseWorldPos.x
-                    targetY = mouseWorldPos.y
-                }
-
-                player.lookAt(targetX)
-                player.weapon.lookAt(
-                    player.x + Player.WIDTH / 2f,
-                    player.y + Player.HEIGHT / 2f,
-                    targetX,
-                    targetY
-                )
+                manualTargetX = mouseWorldPos.x
+                manualTargetY = mouseWorldPos.y
             }
+
+            var finalTargetX = manualTargetX
+            var finalTargetY = manualTargetY
+
+            if (isAutoAim) {
+                val enemy = enemyManager.getNearestEnemy(player.x, player.y)
+                // Raza de 250 pixeli pentru auto-lock
+                if (enemy != null && Vector2.dst(player.x, player.y, enemy.x, enemy.y) < 250f) {
+                    finalTargetX = enemy.x + enemy.WIDTH / 2f
+                    finalTargetY = enemy.y + enemy.HEIGHT / 2f
+                }
+            }
+
+            player.lookAt(finalTargetX)
+            player.weapon.lookAt(
+                player.x + Player.WIDTH / 2f,
+                player.y + Player.HEIGHT / 2f,
+                finalTargetX,
+                finalTargetY
+            )
             hud.setHealth(player.getHealth(), player.getMaxHealth())
             hud.setXp(player.getXp(), player.getXpToNextLevel())
             hud.setLevel(player.getLevel())

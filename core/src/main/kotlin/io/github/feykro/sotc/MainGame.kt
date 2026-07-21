@@ -45,6 +45,11 @@ class MainGame : Game() {
         assetManager.load("weapons/bullet.png", Texture::class.java)
         assetManager.load("weapons/projectiles.png", Texture::class.java)
 
+        //boss
+        assetManager.load("boss/head_1.png", Texture::class.java)
+        assetManager.load("boss/corp_12.png", Texture::class.java)
+        assetManager.load("boss/head_1_top.png", Texture::class.java)
+
         //ui
         assetManager.load("ui/minimap.png", Texture::class.java)
 

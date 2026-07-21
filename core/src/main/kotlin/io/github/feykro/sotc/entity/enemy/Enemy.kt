@@ -39,6 +39,8 @@ abstract class Enemy(
     private var state = EnemyState.WANDER
     private val detectionRadius = 150f
 
+    open val countsTowardsLimit: Boolean = true
+
     open val HITBOX_WIDTH = WIDTH / 2.5f
     open val HITBOX_HEIGHT = HEIGHT / 2f
     open val HITBOX_OFFSET_X = (WIDTH - HITBOX_WIDTH) / 2f

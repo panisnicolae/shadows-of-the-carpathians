@@ -31,16 +31,18 @@ class EnemySpawner(
         spawning = false
     }
 
-    fun update(
-        delta: Float,
-        playerX: Float,
-        playerY: Float
-    ) {
-
+    fun update(delta: Float, playerX: Float, playerY: Float) {
         if (!spawning)
             return
 
-        if (enemyManager.getEnemies().size >= maxAliveEnemies())
+        var count = 0
+        for (enemy in enemyManager.getEnemies()) {
+            if (enemy.countsTowardsLimit) {
+                count++
+            }
+        }
+
+        if (count >= maxAliveEnemies())
             return
 
         spawnTimer += delta

@@ -17,7 +17,8 @@ class DesktopInputManager : InputManager {
         Action.PAUSE to Input.Keys.ESCAPE,
 
         Action.TOGGLE_HITBOXES to Input.Keys.F3,
-        Action.NEXT_WEAPON to Input.Keys.F4
+        Action.NEXT_WEAPON to Input.Keys.F4,
+        Action.TOGGLE_AUTO_AIM to Input.Keys.Z
     )
 
     private val mouseBindings = mapOf(

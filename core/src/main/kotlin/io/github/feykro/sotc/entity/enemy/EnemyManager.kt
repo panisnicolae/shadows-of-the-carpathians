@@ -18,7 +18,17 @@ class EnemyManager(
     fun getKills() = kills
 
     fun spawnEnemy(type: EnemyType, x: Float, y: Float) {
-        enemies.add(factory.create(type, x, y))
+        val enemy = factory.create(type, x, y)
+
+        if (enemy is Zmeu) {
+            // 1. Adăugăm segmentele de la COADĂ spre GÂT (12 -> 1)
+            // Astfel, segmentul 12 va fi cel mai jos, iar segmentul 1 va fi sub cap.
+            for (i in 12 downTo 1) {
+                val segment = ZmeuSegment(x, y, enemy.bodyTex, enemy, i)
+                enemies.add(segment)
+            }
+        }
+        enemies.add(enemy)
     }
 
     fun update(delta: Float, worldWidth: Float, worldHeight: Float,collisionObjects: MapObjects?) {

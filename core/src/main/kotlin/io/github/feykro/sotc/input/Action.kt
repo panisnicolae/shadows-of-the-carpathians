@@ -9,5 +9,6 @@ enum class Action {
     INTERACT,
     PAUSE,
     TOGGLE_HITBOXES,
-    NEXT_WEAPON
+    NEXT_WEAPON,
+    TOGGLE_AUTO_AIM
 }

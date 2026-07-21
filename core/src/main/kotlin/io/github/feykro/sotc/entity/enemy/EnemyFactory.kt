@@ -7,7 +7,9 @@ import io.github.feykro.sotc.weapons.projectile.ProjectileManager
 enum class EnemyType {
     STRIGOI,
     SKELETON,
-    NECROMANCER
+    NECROMANCER,
+    ZMEU,
+    ZMEU_SEGMENT
 }
 class EnemyFactory(
     private val assets: AssetManager,
@@ -26,5 +28,16 @@ class EnemyFactory(
                 assets["enemies/Necromancer/GetHit/spr_NecromancerGetHit_strip9.png", Texture::class.java],
                 projectileManager
             )
+
+            EnemyType.ZMEU -> Zmeu(x,y,
+                assets["boss/head_1.png", Texture::class.java],
+                assets["boss/head_1_top.png", Texture::class.java],
+                assets["boss/corp_12.png", Texture::class.java]
+            )
+            EnemyType.ZMEU_SEGMENT -> {
+                // Aici va trebui să facem un mic artificiu pentru a trece referința capului
+                // dar deocamdată o lăsăm așa și o injectăm în EnemyManager
+                throw Exception("ZmeuSegment should be spawned through EnemyManager")
+            }
         }
 }
