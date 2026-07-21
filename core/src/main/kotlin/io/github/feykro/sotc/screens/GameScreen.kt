@@ -227,19 +227,24 @@ class GameScreen(
         val halfWidth = viewport.worldWidth / 2f
         val halfHeight = viewport.worldHeight / 2f
 
+        val camX = MathUtils.clamp(
+            player.x + Player.WIDTH / 2f,
+            halfWidth,
+            worldWidth - halfWidth
+        )
+
+        val camY = MathUtils.clamp(
+            player.y + Player.HEIGHT / 2f,
+            halfHeight,
+            worldHeight - halfHeight
+        )
+
         camera.position.set(
-            MathUtils.clamp(
-                player.x + Player.WIDTH / 2f,
-                halfWidth,
-                worldWidth - halfWidth
-            ),
-            MathUtils.clamp(
-                player.y + Player.HEIGHT / 2f,
-                halfHeight,
-                worldHeight - halfHeight
-            ),
+            MathUtils.round(camX).toFloat(),
+            MathUtils.round(camY).toFloat(),
             0f
         )
+        println("camera: ${camera.position.x} ${camera.position.y}")
         camera.update()
 
         //render
@@ -267,7 +272,7 @@ class GameScreen(
         }
 
         hud.update(delta)
-        hud.render(game.batch, game.shapeRenderer, player, rituals)
+        hud.render(game.batch, player, rituals)
     }
 
     override fun resize(width: Int, height: Int) {

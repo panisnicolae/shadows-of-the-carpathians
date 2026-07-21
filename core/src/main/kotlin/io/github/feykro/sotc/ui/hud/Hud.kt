@@ -34,9 +34,6 @@ class Hud {
     private val killsLabel: Label
     private val healthLabel: Label
 
-    private val table = Table()
-    private val xpTable = Table()
-
     lateinit var joystick: FloatingJoystick
     lateinit var attackButton: ImageButton
     private lateinit var miniMap: MiniMap
@@ -58,60 +55,55 @@ class Hud {
         healthLabel = Label("100 / 100", labelStyle).apply { setAlignment(Align.center) }
 
         stage.actors {
+            //top left
             table {
-                top().left().pad(10f)
                 setFillParent(true)
+                top().left().pad(20f)
+
                 stack {
                     add(healthBar)
-                    container(killsLabel) {
-                        left().bottom().padLeft(25f).padBottom(25f)
+                    container(actor = killsLabel) {
+                        left()
+                        bottom()
+                        padLeft(25f)
+                        padBottom(30f)
+                    }
+                    container(actor = healthLabel) {
+                        right()
+                        bottom()
+                        padRight(20f)
+                        padBottom(30f)
                     }
                 }.cell(width = 320f, height = 160f)
 
-                add(healthLabel).expandX().center()
+                row()
+
+                add(fpsCounter.root).left().padTop(10f)
+            }
+
+            //top right
+            table {
+                setFillParent(true)
+                top().right().pad(20f)
 
                 container {
                     name = "miniMapContainer"
-                }.right().size(200f,200f)
-
-                row()
-
-                add(fpsCounter.root).left().colspan(3)
+                }.size(200f)
             }
 
+            //bottom center
             table {
-                bottom().padBottom(20f)
                 setFillParent(true)
+                bottom().padBottom(20f)
 
-                add(levelLabel).padRight(10f)
-                add(xpBar).width(480f).height(160f)
+                add(levelLabel)
+                    .padBottom(15f)
+
+                add(xpBar)
+                    .width(480f)
+                    .height(160f)
             }
         }
-
-        /*table.setFillParent(true)
-        table.top()
-        table.pad(10f)
-
-        xpTable.setFillParent(true)
-        xpTable.bottom()
-        xpTable.padBottom(20f)
-        xpBar.setSize(480f, 160f)
-        xpTable.defaults().center()
-        xpTable.add(levelLabel)
-            .padRight(10f)
-            .center()
-
-        xpTable.add(xpBar)
-
-
-        table.add(fpsCounter.root).left()
-        layoutHud()
-
-        stage.addActor(healthBar)
-        stage.addActor(healthLabel)
-        stage.addActor(killsLabel)
-        stage.addActor(xpTable)
-        stage.addActor(table)*/
     }
 
     fun update(delta: Float) {
@@ -121,7 +113,6 @@ class Hud {
 
     fun render(
         batch: Batch,
-        shapeRenderer: ShapeRenderer,
         player: Player,
         rituals: List<Ritual>
     ) {

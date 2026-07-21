@@ -147,35 +147,33 @@ class Player(private val texture: Texture) {
                 deathAnimation.getKeyFrame(stateTime)
         }
 
-        val drawX = if (facingRight) x else x + WIDTH
+        val drawX = MathUtils.round(x).toFloat()
+        val drawY = MathUtils.round(y).toFloat()
         val drawWidth = if (facingRight) WIDTH else -WIDTH
 
-        // Flash când primește damage
         if (hurtTimer > 0f) {
 
-            // Clipește
             if ((hurtTimer * 30).toInt() % 2 == 0) {
                 batch.setColor(1f, 1f, 1f, 1f)
             } else {
                 batch.setColor(1f, 1f, 1f, 0.3f)
             }
         }
-
+        println("player: $x $y")
         batch.draw(
             frame,
-            drawX,
-            y,
+            if (facingRight) drawX else drawX + WIDTH,
+            drawY,
             drawWidth,
             HEIGHT
         )
 
-        // Revine la culoarea normală
         batch.setColor(1f, 1f, 1f, 1f)
 
         weapon.render(
             batch,
-            x + WIDTH / 2f,
-            y + HEIGHT / 2f
+            drawX + WIDTH / 2f,
+            drawY + HEIGHT / 2f
         )
     }
 

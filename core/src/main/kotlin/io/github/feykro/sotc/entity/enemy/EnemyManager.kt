@@ -51,6 +51,8 @@ class EnemyManager(
         var minDistance = Float.MAX_VALUE
 
         for (enemy in enemies) {
+            if (!enemy.canBeHit())
+                continue
             val distance = Vector2.dst2(
                 playerX + Player.WIDTH / 2f,
                 playerY + Player.HEIGHT / 2f,

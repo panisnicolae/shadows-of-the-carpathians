@@ -26,6 +26,10 @@ abstract class Weapon(
     abstract val weaponLength: Float
     private var facingLeft = false
 
+    protected var recoil = 0f
+    protected open val maxRecoil = 0f
+    protected open val recoilRecoverSpeed = 20f
+
     val damage: Int
         get() = stats.baseDamage + (level - 1) * stats.damagePerLevel
 
@@ -74,9 +78,14 @@ abstract class Weapon(
             if (facingLeft) sprite.height - 2f else 2f
         )
 
+        val dir = getDirection()
+
+        val recoilX = -dir.x * recoil
+        val recoilY = -dir.y * recoil
+
         sprite.setPosition(
-            x - sprite.originX,
-            y - sprite.originY -3f
+            x - sprite.originX + recoilX,
+            y - sprite.originY - 3f + recoilY
         )
 
         sprite.rotation =
@@ -87,14 +96,8 @@ abstract class Weapon(
 
         sprite.draw(batch)
     }
-    protected fun getRenderRotation(): Float {
-        return if (facingLeft)
-            rotation + 180f
-        else
-            rotation
-    }
+
     protected fun getDirection(): Vector2 {
-        val angle = getRenderRotation() + 90f
 
         return Vector2(
             MathUtils.cosDeg(rotation + 90f),
@@ -107,16 +110,16 @@ abstract class Weapon(
         ownerY = y
     }
 
-    fun getTopPosition(): Vector2 {
-        // Distanța de la mâner la vârful țevii
-        val distToMuzzle = weaponLength
+    protected fun updateRecoil(delta: Float) {
+        recoil = MathUtils.lerp(recoil, 0f, recoilRecoverSpeed * delta)
+    }
 
-        // Direcția în care arată arma
-        val angle = rotation + 90f
+    fun getTopPosition(): Vector2 {
+        val dir = getDirection()
 
         return Vector2(
-            ownerX + MathUtils.cosDeg(angle) * distToMuzzle,
-            ownerY + MathUtils.sinDeg(angle) * distToMuzzle
+            ownerX + dir.x * weaponLength,
+            ownerY + dir.y * weaponLength
         )
     }
 }

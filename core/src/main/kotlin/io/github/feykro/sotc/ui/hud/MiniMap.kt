@@ -26,9 +26,18 @@ class MiniMap(
     override fun draw(batch: Batch, parentAlpha: Float) {
         sprite.setBounds(x, y, width, height)
         sprite.draw(batch)
+
         batch.end()
 
         shapeRenderer.projectionMatrix = batch.projectionMatrix
+
+        // border
+        shapeRenderer.use(ShapeRenderer.ShapeType.Line) { renderer ->
+            renderer.color = Color.BLACK
+            renderer.rect(x, y, width, height)
+        }
+
+        // rituals + player
         shapeRenderer.use(ShapeRenderer.ShapeType.Filled) { renderer ->
             val p = player ?: return@use
 
@@ -39,13 +48,12 @@ class MiniMap(
                 renderer.rect(rx - 2f, ry - 2f, 4f, 4f)
             }
 
-            // Player
             renderer.color = Color.CYAN
             val px = x + (p.x + Player.WIDTH / 2f) / worldWidth * width
             val py = y + (p.y + Player.HEIGHT / 2f) / worldHeight * height
             renderer.circle(px, py, 3f)
         }
 
-        batch.begin() // Redeschidem batch-ul pentru restul HUD-ului
+        batch.begin()
     }
 }

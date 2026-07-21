@@ -11,7 +11,7 @@ class Carbine(
 
     override val stats = WeaponStats(
         baseDamage = 20,
-        damagePerLevel = 3,
+        damagePerLevel = 10,
         baseAttackSpeed = 3f,
         attackSpeedPerLevel = 0.1f
     )

@@ -13,14 +13,20 @@ abstract class RangedWeapon(
 
     private var attackTimer = 0f
 
+    override val maxRecoil = 6f
+    override val recoilRecoverSpeed = 18f
+
     open override fun update(delta: Float) {
         attackTimer -= delta
+        updateRecoil(delta)
     }
 
     final override fun attack() {
         if (attackTimer > 0f) return
 
         attackTimer = 1f / attackSpeed
+
+        recoil = maxRecoil
 
         fire()
     }
